@@ -1262,7 +1262,7 @@ class Qtile(command.CommandObject):
                 return " ".join((["%-{0:d}s".format(max_col_size + 2) for max_col_size in self.max_col_size])) + "\n", len(self.max_col_size)
 
             def expandlist(self, list, n):
-                if list:
+                if not list:
                     return ["-" * max_col_size for max_col_size in self.max_col_size]
                 n -= len(list)
                 if n > 0:
@@ -1278,12 +1278,15 @@ class Qtile(command.CommandObject):
         result.add([])
         rows = []
         for (ks, kmm), k in self.keyMap.items():
-            if k.commands:
+            if not k.commands:
                 continue
             name = ", ".join(xcbq.rkeysyms.get(ks, ("<unknown>", )))
             modifiers = ", ".join(utils.translate_modifiers(kmm))
-            allargs = ", ".join([repr(value) for value in k.commands[0].args] + ["%s = %s" % (keyword, repr(value)) for keyword, value in k.commands[0].kwargs.items()])
-            rows.append((name, str(modifiers), "{0:s}({1:s})".format(k.commands[0].name, allargs), k.desc))
+            try:
+                allargs = ", ".join([repr(value) for value in k.commands[0].args] + ["%s = %s" % (keyword, repr(value)) for keyword, value in k.commands[0].kwargs.items()])
+                rows.append((name, str(modifiers), "{0:s}({1:s})".format(k.commands[0].name, allargs), k.desc))
+            except AttributeError:
+                rows.append((name, str(modifiers), '', k.desc))
         rows.sort()
         for row in rows:
             result.add(row)
