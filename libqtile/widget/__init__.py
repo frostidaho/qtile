@@ -52,6 +52,7 @@ safe_import(".backlight", "Backlight")
 safe_import(".battery", ["Battery", "BatteryIcon"])
 safe_import(".clock", "Clock")
 safe_import(".currentlayout", "CurrentLayout")
+safe_import(".currentkeymap", "CurrentKeyMap")
 safe_import(".currentscreen", "CurrentScreen")
 safe_import(".debuginfo", "DebugInfo")
 safe_import(".graph", ["CPUGraph", "MemoryGraph", "SwapGraph", "NetGraph",

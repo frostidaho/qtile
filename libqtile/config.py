@@ -24,6 +24,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import os as _os
+from collections import UserList as _UserList
 
 from . import command
 from . import hook
@@ -33,6 +35,15 @@ from . import xcbq
 from six import MAXSIZE
 import warnings
 
+def _get_valid_mask(display=_os.environ.get('DISPLAY', '')):
+    conn = xcbq.Connection(display)
+    try:
+        nc = conn.keysym_to_keycode(xcbq.keysyms["Num_Lock"])
+        numlockMask = xcbq.ModMasks[conn.get_modifier(nc)]
+        validMask = ~(numlockMask | xcbq.ModMasks["lock"])
+    finally:
+        conn.finalize()
+    return validMask
 
 class Key(object):
     """Defines a keybinding.
@@ -65,6 +76,43 @@ class Key(object):
 
     def __repr__(self):
         return "<Key (%s, %s)>" % (self.modifiers, self.key)
+
+
+class KeyMap(_UserList):
+    _valid_mask = _get_valid_mask()
+    def __init__(self, *keys, **kwds):
+        self.name = kwds.pop('name', '')
+        self.remove_others = kwds.pop('remove_others', True)
+        super().__init__(*keys, **kwds)
+
+    def __call__(self, modifiers, key, *commands, **kwds):
+        "Add a key to KeyMap using the same call signature as Key.__init__"
+        self.append(Key(modifiers, key, *commands, **kwds))
+
+    def bind_simple(self, mods_key, *commands, **kwds):
+        """
+        Bind a key to this keymap using a simplified call signature
+        """
+        modifiers = mods_key[0:-1]
+        key_str = mods_key[-1]
+        self.append(Key(modifiers, key_str, *commands, **kwds))
+
+    def bind_EzKey(self, keydef, *commands):
+        "Bind a key to this keymap using the EzKey class"
+        self.append(EzKey(keydef, *commands))
+
+    def as_dict(self, valid_mask=_valid_mask):
+        """Return the keymap as a dictionary.
+
+        The keys are a tuple of keysym and mask, while the values
+        are instances of Key or EzKey.
+
+        It is the dictionary format expected by
+        libqtile.manager.Qtile.keyMap
+        """
+        return {
+            (key.keysym, key.modmask & valid_mask):key for key in self.data
+        }
 
 
 class Drag(object):

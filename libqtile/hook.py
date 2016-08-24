@@ -267,6 +267,15 @@ class Subscribe(object):
         """
         return self._subscribe("layout_change", func)
 
+    def keymap_change(self, func):
+        """Called on Qtile keymap change
+
+        **Arguments**
+
+            * the new keymap
+        """
+        return self._subscribe("keymap_change", func)
+
     def net_wm_icon_change(self, func):
         """Called on `_NET_WM_ICON` chance
 
