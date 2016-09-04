@@ -247,6 +247,18 @@ class _Window(command.CommandObject):
             return
         hook.fire("window_name_change")
 
+    @property
+    def borderwidth(self):
+        rm_border = getattr(self, 'remove_border', False)
+        if rm_border:
+            return 0
+        else:
+            return self._borderwidth
+
+    @borderwidth.setter
+    def borderwidth(self, value):
+        self._borderwidth = value
+
     def updateHints(self):
         """Update the local copy of the window's WM_HINTS
 
@@ -478,7 +490,7 @@ class _Window(command.CommandObject):
             y=y,
             width=width,
             height=height,
-            borderwidth=borderwidth,
+            borderwidth=self.borderwidth,
         )
         if above:
             kwarg['stackmode'] = StackMode.Above
