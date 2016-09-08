@@ -231,6 +231,7 @@ class Qtile(command.CommandObject):
         }
         self.setup_selection()
         hook.fire("startup_complete")
+        hook.fire("initialized", self)
 
     def setup_selection(self):
         PRIMARY = self.conn.atoms["PRIMARY"]

@@ -90,6 +90,15 @@ class Subscribe(object):
         """
         return self._subscribe("startup_complete", func)
 
+    def initialized(self, func):
+        """Called when the qtile manager is completely initialized
+
+        **Arguments**
+
+            * qtile manager instance
+        """
+        return self._subscribe('initialized', func)
+
     def setgroup(self, func):
         """Called when group is changed
 
