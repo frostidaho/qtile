@@ -953,9 +953,15 @@ class Qtile(command.CommandObject):
                 [xcffib.xproto.StackMode.Above]
             )
 
-        if self.windowMap.get(wnd):
-            self.currentGroup.focus(self.windowMap.get(wnd), False)
-            self.windowMap.get(wnd).focus(False)
+
+        # https://github.com/qtile/qtile/issues/572
+        # if self.windowMap.get(wnd):
+        window = self.windowMap.get(wnd)
+        if window and not window.window.get_property('QTILE_INTERNAL'):
+            self.currentGroup.focus(window, False)
+            window.focus(False)
+            # self.currentGroup.focus(self.windowMap.get(wnd), False)
+            # self.windowMap.get(wnd).focus(False)
 
         self.conn.conn.core.AllowEvents(xcffib.xproto.Allow.ReplayPointer, e.time)
         self.conn.conn.flush()
