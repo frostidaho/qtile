@@ -61,6 +61,7 @@ class Key(object):
     kwds:
         A dictionary containing "desc", allowing a description to be added
     """
+    __slots__ = ('modifiers', 'key', 'commands', 'desc', 'keysym', 'modmask')
     def __init__(self, modifiers, key, *commands, **kwds):
         self.modifiers = modifiers
         self.key = key
