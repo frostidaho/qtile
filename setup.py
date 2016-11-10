@@ -146,7 +146,7 @@ setup(
     package_data={'libqtile.resources': ['battery-icons/*.png']},
     entry_points={
         'console_scripts': [
-            'qtile = libqtile.scripts.qtile:main',
+            # 'qtile = libqtile.scripts.qtile:main',
             'qtile-run = libqtile.scripts.qtile_run:main',
             'qtile-top = libqtile.scripts.qtile_top:main',
             'qshell = libqtile.scripts.qshell:main',
@@ -154,6 +154,7 @@ setup(
     },
     scripts=[
         'bin/iqshell',
+        'bin/qtile',
     ],
     data_files=[
         ('share/man/man1', ['resources/qtile.1',
