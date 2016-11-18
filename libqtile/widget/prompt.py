@@ -31,14 +31,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import copy
 import glob
 import os
 import pickle
 import string
-from collections import deque
+from collections import OrderedDict, deque
 
 from libqtile.log_utils import logger
+
 from . import base
 from .. import bar, command, hook, pangocffi, utils, xcbq, xkeysyms
 
@@ -322,6 +322,8 @@ class Prompt(base._TextBox):
                 ("record_history", True, "Keep a record of executed commands"),
                 ("max_history", 100,
                  "Commands to keep in history. 0 for no limit."),
+                ("ignore_dups_history", False,
+                 "Don't store duplicates in history"),
                 ("bell_style", "audible",
                  "Alert at the begin/end of the command history. " +
                  "Possible values: 'audible', 'visual' and None."),
@@ -368,6 +370,8 @@ class Prompt(base._TextBox):
                 with open(self.history_path, 'rb') as f:
                     try:
                         self.history = pickle.load(f)
+                        if self.ignore_dups_history:
+                            self._dedup_history()
                     except:
                         # unfortunately, pickle doesn't wrap its errors, so we
                         # can't detect what's a pickle error and what's not.
@@ -376,7 +380,7 @@ class Prompt(base._TextBox):
                                         for x in self.completers if x}
                     if self.max_history != \
                        self.history[list(self.history)[0]].maxlen:
-                        self.history = {x: deque(copy.copy(self.history[x]),
+                        self.history = {x: deque(self.history[x],
                                                  self.max_history)
                                         for x in self.completers if x}
             else:
@@ -541,7 +545,13 @@ class Prompt(base._TextBox):
         if self.userInput:
             # If history record is activated, also save command in history
             if self.record_history:
+                # ensure no dups in history
+                if self.ignore_dups_history and (self.userInput in self.completer_history):
+                    self.completer_history.remove(self.userInput)
+                    self.position -= 1
+
                 self.completer_history.append(self.userInput)
+
                 if self.position < self.max_history:
                     self.position += 1
                 with open(self.history_path, mode='wb') as f:
@@ -650,3 +660,19 @@ class Prompt(base._TextBox):
             text=self.text,
             active=self.active,
         )
+
+    def _dedup_history(self):
+        """Filter the history deque, clearing all duplicate values."""
+        self.history = {x: self._dedup_deque(self.history[x])
+                        for x in self.completers if x}
+
+    def _dedup_deque(self, dq):
+        return deque(_LastUpdatedOrderedDict.fromkeys(dq))
+
+class _LastUpdatedOrderedDict(OrderedDict):
+    """Store items in the order the keys were last added."""
+
+    def __setitem__(self, key, value):
+        if key in self:
+            del self[key]
+        OrderedDict.__setitem__(self, key, value)

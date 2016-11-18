@@ -111,7 +111,7 @@ class Qtile(command.CommandObject):
 
         # Find the modifier mask for the numlock key, if there is one:
         nc = self.conn.keysym_to_keycode(xcbq.keysyms["Num_Lock"])
-        self.numlockMask = xcbq.ModMasks[self.conn.get_modifier(nc)]
+        self.numlockMask = xcbq.ModMasks.get(self.conn.get_modifier(nc), 0)
         self.validMask = ~(self.numlockMask | xcbq.ModMasks["lock"])
 
         # Because we only do Xinerama multi-screening,
@@ -963,6 +963,7 @@ class Qtile(command.CommandObject):
             # self.currentGroup.focus(self.windowMap.get(wnd), False)
             # self.windowMap.get(wnd).focus(False)
 
+
         self.conn.conn.core.AllowEvents(xcffib.xproto.Allow.ReplayPointer, e.time)
         self.conn.conn.flush()
 
@@ -1120,6 +1121,7 @@ class Qtile(command.CommandObject):
         self.currentScreen = self.screens[n]
         if old != self.currentScreen:
             hook.fire("current_screen_change")
+            old.group.layoutAll()
             self.currentGroup.focus(self.currentWindow, warp)
 
     def moveToGroup(self, group):

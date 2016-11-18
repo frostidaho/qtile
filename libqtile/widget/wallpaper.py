@@ -22,6 +22,7 @@
 
 import os
 import subprocess
+import random
 from . import base
 from .. import bar
 from libqtile.log_utils import logger
@@ -29,10 +30,12 @@ from libqtile.log_utils import logger
 
 class Wallpaper(base._TextBox):
     defaults = [
-        ("directory", os.path.expanduser("~") + "/Pictures/wallpapers/",
-         "Wallpaper Directory"),
+        ("directory", "~/Pictures/wallpapers/", "Wallpaper Directory"),
         ("wallpaper", None, "Wallpaper"),
         ("wallpaper_command", None, "Wallpaper command"),
+        ("random_selection", False, "If set, use random initial wallpaper and "
+         "randomly cycle through the wallpapers."),
+        ("label", None, "Use a fixed label instead of image name.")
     ]
 
     def __init__(self, **config):
@@ -44,7 +47,7 @@ class Wallpaper(base._TextBox):
         self.set_wallpaper()
 
     def get_path(self, file):
-        return self.directory + file
+        return os.path.join(os.path.expanduser(self.directory), file)
 
     def get_wallpapers(self):
         try:
@@ -58,13 +61,16 @@ class Wallpaper(base._TextBox):
 
     def set_wallpaper(self):
         if len(self.images) == 0:
-            if len(self.wallpaper) == 0:
+            if self.wallpaper is None:
                 self.text = "empty"
                 return
             else:
                 self.images.append(self.wallpaper)
         cur_image = self.images[self.index]
-        self.text = os.path.basename(cur_image)
+        if self.label is None:
+            self.text = os.path.basename(cur_image)
+        else:
+            self.text = self.label
         if self.wallpaper_command:
             self.wallpaper_command.append(cur_image)
             subprocess.call(self.wallpaper_command)
@@ -77,7 +83,10 @@ class Wallpaper(base._TextBox):
 
     def button_press(self, x, y, button):
         if button == 1:
-            self.index += 1
-            self.index %= len(self.images)
+            if self.random_selection:
+                self.index = random.randint(0, len(self.images) - 1)
+            else:
+                self.index += 1
+                self.index %= len(self.images)
             self.set_wallpaper()
             self.draw()

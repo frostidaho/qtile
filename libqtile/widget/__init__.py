@@ -44,7 +44,8 @@ def safe_import(module_name, class_name):
         module = importlib.import_module(module_name, package)
         globals()[class_name] = getattr(module, class_name)
     except ImportError as error:
-        logger.warning("Can't Import Widget: '%s.%s', %s", module_name, class_name, error)
+        logger.warning("Unmet dependencies for optional Widget: '%s.%s', %s",
+                       module_name, class_name, error)
         logger.debug("%s", traceback.format_exc())
 
 
@@ -53,6 +54,7 @@ safe_import(".battery", ["Battery", "BatteryIcon"])
 safe_import(".clock", "Clock")
 safe_import(".currentlayout", "CurrentLayout")
 safe_import(".currentkeymap", "CurrentKeyMap")
+safe_import(".currentlayout", ["CurrentLayout", "CurrentLayoutIcon"])
 safe_import(".currentscreen", "CurrentScreen")
 safe_import(".debuginfo", "DebugInfo")
 safe_import(".graph", ["CPUGraph", "MemoryGraph", "SwapGraph", "NetGraph",

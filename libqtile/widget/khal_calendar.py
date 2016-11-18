@@ -16,6 +16,7 @@
 # borrows liberally from that one.
 #
 # Copyright (c) 2016 by David R. Andersen <k0rx@RXcomm.net>
+# New khal output format adjustment, 2016 Christoph Lassner
 # Licensed under the Gnu Public License
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -74,7 +75,6 @@ class KhalCalendar(base.ThreadedPollText):
         # get today and tomorrow
         now = datetime.datetime.now()
         tomorrow = now + datetime.timedelta(days=1)
-
         # get reminder time in datetime format
         remtime = datetime.timedelta(minutes=self.remindertime)
 
@@ -82,33 +82,36 @@ class KhalCalendar(base.ThreadedPollText):
         # and get the next event
         args = ['khal', 'agenda', '--days', str(self.lookahead)]
         cal = subprocess.Popen(args, stdout=subprocess.PIPE)
-        output = cal.communicate()[0]
-        output = output.decode()
+        output = cal.communicate()[0].decode('utf-8')
         output = output.split('\n')
-        caldate = output[0]
-        try:
-            if output[0] == 'Today:':
-                date = str(now.month) + '/' + str(now.day) + '/' + \
-                    str(now.year)
-            elif output[0] == 'Tomorrow:':
-                date = str(tomorrow.month) + '/' + str(tomorrow.day) + \
-                    '/' + str(tomorrow.year)
-            else:
-                date = output[0]
-        except IndexError:
+        if len(output) < 2:
             return 'No appointments scheduled'
-        for i in range(1, len(output)):
+        date = 'unknown'
+        endtime = None
+        for i in range(len(output)):  # pylint: disable=consider-using-enumerate
+            if output[i].strip() == '':
+                continue
             try:
                 starttime = dateutil.parser.parse(date + ' ' + output[i][:5],
                                                   ignoretz=True)
                 endtime = dateutil.parser.parse(date + ' ' + output[i][6:11],
                                                 ignoretz=True)
             except ValueError:
-                date = output[i]
-                caldate = output[i]
-                continue
-            if endtime > now:
-                data = caldate.replace(':', '') + ' ' + output[i]
+                try:
+                    if output[i] == 'Today:':
+                        date = str(now.month) + '/' + str(now.day) + '/' + \
+                            str(now.year)
+                    elif output[i] == 'Tomorrow:':
+                        date = str(tomorrow.month) + '/' + str(tomorrow.day) + \
+                            '/' + str(tomorrow.year)
+                    else:
+                        dateutil.parser.parse(output[i])
+                        date = output[i]
+                        continue
+                except ValueError:
+                    pass  # no date.
+            if endtime is not None and endtime > now:
+                data = date.replace(':', '') + ' ' + output[i]
                 break
             else:
                 data = 'No appointments in next ' + \
@@ -116,7 +119,6 @@ class KhalCalendar(base.ThreadedPollText):
 
         # get rid of any garbage in appointment added by khal
         data = ''.join(filter(lambda x: x in string.printable, data))
-
         # colorize the event if it is within reminder time
         if (starttime - remtime <= now) and (endtime > now):
             self.foreground = utils.hex(self.reminder_color)
