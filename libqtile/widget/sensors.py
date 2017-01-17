@@ -30,6 +30,7 @@ from six import PY2
 
 from . import base
 from ..utils import UnixCommandNotFound, catch_exception_and_warn
+from libqtile.log_utils import logger
 
 
 class ThermalSensor(base.InLoopPollText):
@@ -97,7 +98,7 @@ class ThermalSensor(base.InLoopPollText):
         {<sensor_name>: (<temperature>, <temperature symbol>), ..etc..}
         """
         temperature_values = {}
-        print(self.sensors_temp.findall(sensors_out))
+        logger.info(self.sensors_temp.findall(sensors_out))
         for name, temp, symbol in self.sensors_temp.findall(sensors_out):
             name = name.strip()
             temperature_values[name] = temp, symbol

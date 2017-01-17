@@ -31,7 +31,7 @@ from __future__ import division
 from . import base
 from .. import bar, hook
 from ..log_utils import logger
-import types
+import six
 import os
 import cairocffi
 from ..layout.base import Layout
@@ -116,6 +116,7 @@ class CurrentLayoutIcon(base._TextBox):
     def _configure(self, qtile, bar):
         base._TextBox._configure(self, qtile, bar)
         self.text = self.bar.screen.group.layouts[0].name
+        self.current_layout = self.text
         self.icons_loaded = False
         self.icon_paths = []
         self.surfaces = {}
@@ -165,7 +166,7 @@ class CurrentLayoutIcon(base._TextBox):
             layout_class_name.lower()
             for layout_class, layout_class_name
             in map(lambda x: (getattr(layout_module, x), x), dir(layout_module))
-            if isinstance(layout_class, (type, types.ClassType)) and issubclass(layout_class, Layout)
+            if isinstance(layout_class, six.class_types) and issubclass(layout_class, Layout)
         ]
 
     def _update_icon_paths(self):

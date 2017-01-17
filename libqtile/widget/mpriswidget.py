@@ -28,7 +28,6 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 from libqtile.log_utils import logger
 from . import base
-from .. import bar
 
 
 class Mpris(base._TextBox):
@@ -40,15 +39,17 @@ class Mpris(base._TextBox):
     """
     orientations = base.ORIENTATION_HORIZONTAL
 
-    def __init__(self, name="clementine", width=bar.CALCULATED,
-                 objname='org.mpris.clementine', **config):
-        base._TextBox.__init__(self, " ", width, **config)
+    defaults = [
+        ('name', 'clementine', 'Name of the widget'),
+        ('objname', 'org.mpris.clementine', 'DBUS object to connect to'),
+        ('stop_pause_text', 'Stopped', "Optional text to display when in the stopped/paused state"),
+    ]
 
+    def __init__(self, **config):
+        base._TextBox.__init__(self, " ", **config)
+        self.add_defaults(Mpris.defaults)
         self.dbus_loop = None
-
-        self.objname = objname
         self.connected = False
-        self.name = name
 
     def _configure(self, qtile, bar):
         base._TextBox._configure(self, qtile, bar)
@@ -143,7 +144,7 @@ class Mpris(base._TextBox):
         if not self.connected:
             playing = 'Not Connected'
         elif not self.is_playing():
-            playing = 'Stopped'
+            playing = self.stop_pause_text
         else:
             try:
                 metadata = self.iface.GetMetadata()
