@@ -39,3 +39,8 @@ man:
 .PHONY: update-requirements
 update-requirements:
 	pip-compile requirements.in
+
+.PHONY: makepkg
+makepkg:
+	makepkg -c -s -f
+
