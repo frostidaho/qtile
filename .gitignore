@@ -3,6 +3,7 @@
 *.py~
 *.so
 *.o
+*.pkg.tar.xz
 __pycache__
 MANIFEST
 /build
