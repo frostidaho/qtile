@@ -346,16 +346,24 @@ class Qtile(command.CommandObject):
 
     def _process_manual_screens(self):
         cfg_screens = self.config.screens
-        # cfg_screens = sorted(cfg_screens, key=lambda x: (x.monitor.geometry.x, x.monitor.geometry.y))
-        logger.warning('Given {} screens'.format(len(cfg_screens)))
+        # Order cfg_screens so that they are in order from left to right
+        cfg_screens = sorted(cfg_screens, key=lambda x: (x.monitor.geometry.x, x.monitor.geometry.y))
+
+        def get_primary_idx():
+            for idx,scr in enumerate(cfg_screens):
+                if scr.primary:
+                    return idx
+            return 0
+
+        p_idx = get_primary_idx()
+        # Reorder cfg_screens so that the primary screen comes first
+        cfg_screens = cfg_screens[p_idx:] + cfg_screens[0:p_idx]
+
+        logger.warning('Given {} screens: {}'.format(len(cfg_screens), cfg_screens))
+        self.currentScreen = cfg_screens[0]
         for i,scr in enumerate(cfg_screens):
             scr._configure(self, i, self.groups[i])
-            if scr.primary and (not self.currentScreen):
-                self.currentScreen = scr
             self.screens.append(scr)
-
-        if not self.currentScreen:
-            self.currentScreen = self.screens[0]
 
     def _process_screens(self):
         logger.warning('starting _process_screens')

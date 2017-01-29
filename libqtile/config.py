@@ -492,6 +492,14 @@ class ManualScreen(Screen):
     def primary(self):
         return self.monitor.is_primary
 
+    def __repr__(self):
+        cname = self.__class__.__name__
+        return cname + ' -> ' + repr(self.monitor)
+
+    def __str__(self):
+        cname = self.__class__.__name__
+        return cname + ' -> ' + str(self.monitor)
+
 class Group(object):
     """Represents a "dynamic" group
 

@@ -1,7 +1,7 @@
 # Maintainer: frostidaho@gmail.com
 
 pkgname=qtile-py3ida-git
-pkgver=2655.82483c7
+pkgver=2656.7367982
 pkgrel=1
 pkgdesc="Python3 full-featured, pure-Python tiling window manager. (git version)"
 arch=('any')
