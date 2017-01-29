@@ -43,7 +43,7 @@ import warnings
 
 from . import asyncio
 
-from .config import Drag, Click, Screen, Match, Rule
+from .config import Drag, Click, Screen, Match, Rule, ManualScreen
 from .group import _Group
 from .log_utils import logger
 from .state import QtileState
@@ -344,11 +344,30 @@ class Qtile(command.CommandObject):
                 self.currentScreen = s
             self.screens.append(s)
 
+    def _process_manual_screens(self):
+        cfg_screens = self.config.screens
+        # cfg_screens = sorted(cfg_screens, key=lambda x: (x.monitor.geometry.x, x.monitor.geometry.y))
+        logger.warning('Given {} screens'.format(len(cfg_screens)))
+        for i,scr in enumerate(cfg_screens):
+            scr._configure(self, i, self.groups[i])
+            if scr.primary and (not self.currentScreen):
+                self.currentScreen = scr
+            self.screens.append(scr)
+
+        if not self.currentScreen:
+            self.currentScreen = self.screens[0]
+
     def _process_screens(self):
+        logger.warning('starting _process_screens')
+        if any((isinstance(x, ManualScreen) for x in self.config.screens)):
+            logger.warning('Found ManualScreen() instances')
+            self._process_manual_screens()
+            return
         if hasattr(self.config, 'fake_screens'):
             self._process_fake_screens()
             return
 
+        logger.warning('done with manual and fake screens')
         # What's going on here is a little funny. What we really want is only
         # screens that don't overlap here; overlapping screens should see the
         # same parts of the root window (i.e. for people doing xrandr

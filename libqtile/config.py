@@ -470,6 +470,27 @@ class Screen(command.CommandObject):
         warnings.warn("togglegroup is deprecated, use toggle_group", DeprecationWarning)
         self.cmd_toggle_group(groupName)
 
+class ManualScreen(Screen):
+    def __init__(self, monitor, *pargs, **kwargs):
+        self.monitor = monitor
+        super(ManualScreen, self).__init__(*pargs, **kwargs)
+
+    def _configure(self, qtile, index, group):
+        geom = self.monitor.geometry
+        x, y, width, height = geom.x, geom.y, geom.width, geom.height
+        super(ManualScreen, self)._configure(
+            qtile,
+            index,
+            x,
+            y,
+            width,
+            height,
+            group,
+        )
+
+    @property
+    def primary(self):
+        return self.monitor.is_primary
 
 class Group(object):
     """Represents a "dynamic" group
