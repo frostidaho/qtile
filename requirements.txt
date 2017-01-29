@@ -10,3 +10,4 @@ cffi==1.6.0
 pycparser==2.14           # via cffi
 six==1.10.0
 xcffib==0.4.2
+https://github.com/frostidaho/python-edider/tarball/master#egg=edider
