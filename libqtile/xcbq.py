@@ -450,6 +450,10 @@ class Window(object):
         if r:
             return self._propertyUTF8(r)
 
+        r = self.get_property(xcffib.xproto.Atom.WM_NAME, "UTF8_STRING")
+        if r:
+            return self._propertyUTF8(r)
+
         r = self.get_property(
             xcffib.xproto.Atom.WM_NAME,
             xcffib.xproto.GetPropertyType.Any
