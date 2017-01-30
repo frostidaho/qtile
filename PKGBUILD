@@ -1,7 +1,7 @@
 # Maintainer: frostidaho@gmail.com
 
 pkgname=qtile-py3ida-git
-pkgver=2656.7367982
+pkgver=2664.b1ee45b
 pkgrel=1
 pkgdesc="Python3 full-featured, pure-Python tiling window manager. (git version)"
 arch=('any')
@@ -37,4 +37,5 @@ package() {
 
   msg "Running setup.py"
   python setup.py install --root=${pkgdir} --prefix=/usr --optimize=1
+  python setup.py install --root=${pkgdir} --prefix=/usr --optimize=2
 }
