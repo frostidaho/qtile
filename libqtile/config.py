@@ -80,7 +80,12 @@ class Key(object):
 
 
 class KeyMap(_UserList):
-    _valid_mask = _get_valid_mask()
+    try:
+        _valid_mask = _get_valid_mask()
+    except IndexError:
+        # This IndexError occurs when creating documentation via sphinx
+        _valid_mask = -19
+
     def __init__(self, *keys, **kwds):
         self.name = kwds.pop('name', '')
         self.remove_others = kwds.pop('remove_others', True)
