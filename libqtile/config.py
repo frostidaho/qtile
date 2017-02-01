@@ -480,7 +480,7 @@ class ManualScreen(Screen):
         self.monitor = monitor
         super(ManualScreen, self).__init__(*pargs, **kwargs)
 
-    def _configure(self, qtile, index, group):
+    def _manual_configure(self, qtile, index, group):
         geom = self.monitor.geometry
         x, y, width, height = geom.x, geom.y, geom.width, geom.height
         super(ManualScreen, self)._configure(
@@ -493,9 +493,9 @@ class ManualScreen(Screen):
             group,
         )
 
-    @property
-    def primary(self):
-        return self.monitor.is_primary
+    # @property
+    # def primary(self):
+    #     return self.monitor.is_primary
 
     def __repr__(self):
         cname = self.__class__.__name__

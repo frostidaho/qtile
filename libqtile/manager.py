@@ -351,7 +351,7 @@ class Qtile(command.CommandObject):
 
         def get_primary_idx():
             for idx,scr in enumerate(cfg_screens):
-                if scr.primary:
+                if scr.monitor.is_primary:
                     return idx
             return 0
 
@@ -362,7 +362,7 @@ class Qtile(command.CommandObject):
         logger.warning('Given {} screens: {}'.format(len(cfg_screens), cfg_screens))
         self.currentScreen = cfg_screens[0]
         for i,scr in enumerate(cfg_screens):
-            scr._configure(self, i, self.groups[i])
+            scr._manual_configure(self, i, self.groups[i])
             self.screens.append(scr)
 
     def _process_screens(self):
