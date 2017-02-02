@@ -347,7 +347,10 @@ class Qtile(command.CommandObject):
     def _process_manual_screens(self):
         cfg_screens = self.config.screens
         # Order cfg_screens so that they are in order from left to right
-        cfg_screens = sorted(cfg_screens, key=lambda x: (x.monitor.geometry.x, x.monitor.geometry.y))
+        def screen_order_key(screen):
+            geom = screen.monitor.geometry
+            return geom.x, geom.y
+        cfg_screens = sorted(cfg_screens, key=screen_order_key)
 
         def get_primary_idx():
             for idx,scr in enumerate(cfg_screens):
