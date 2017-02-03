@@ -35,9 +35,12 @@ import collections
 import math
 import cairocffi
 import xcffib.xproto
+# from xcffib import render as xcb_render
+# from xcffib.xproto import SubwindowMode
 
 from . import pangocffi
 from . import utils
+from .log_utils import logger
 
 
 class TextLayout(object):
@@ -244,7 +247,7 @@ class Drawer(object):
             self.height,
         )
         self.ctx = self.new_ctx()
-        self.clear((0, 0, 1))
+        self.clear('#f12345')
 
     def finalize(self):
         self.qtile.conn.conn.core.FreeGC(self.gc)
@@ -324,28 +327,16 @@ class Drawer(object):
     def new_ctx(self):
         return pangocffi.CairoContext(cairocffi.Context(self.surface))
 
-    def set_source_rgb(self, colour):
-        if type(colour) == list:
-            if len(colour) == 0:
-                # defaults to black
-                self.ctx.set_source_rgba(*utils.rgb("#000000"))
-            elif len(colour) == 1:
-                self.ctx.set_source_rgba(*utils.rgb(colour[0]))
-            else:
-                linear = cairocffi.LinearGradient(0.0, 0.0, 0.0, self.height)
-                step_size = 1.0 / (len(colour) - 1)
-                step = 0.0
-                for c in colour:
-                    rgb_col = utils.rgb(c)
-                    if len(rgb_col) < 4:
-                        rgb_col[3] = 1
-                    linear.add_color_stop_rgba(step, *rgb_col)
-                    step += step_size
-                self.ctx.set_source(linear)
-        else:
-            self.ctx.set_source_rgba(*utils.rgb(colour))
+    def set_source_rgb(self, color='#ffffff'):
+        tr_color = utils.rgb(color)
+        logger.debug('drawer set_source_rgb() color: {}; {}'.format(color, tr_color))
+        self.ctx.set_source_rgba(*tr_color)
 
     def clear(self, colour):
+        self.ctx.set_operator(cairocffi.OPERATOR_CLEAR)
+        self.ctx.paint()
+        self.ctx.set_operator(cairocffi.OPERATOR_OVER)
+        # logger.warning('drawer clear color: {}'.format(colour))
         self.set_source_rgb(colour)
         self.ctx.rectangle(0, 0, self.width, self.height)
         self.ctx.fill()
