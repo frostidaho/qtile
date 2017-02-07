@@ -283,7 +283,7 @@ class _TextBox(_Widget):
         ("font", "Arial", "Default font"),
         ("fontsize", None, "Font size. Calculated if None."),
         ("padding", None, "Padding. Calculated if None."),
-        ("foreground", "ffffff", "Foreground colour"),
+        ("foreground", "ffffff", "Foreground color"),
         (
             "fontshadow",
             None,
@@ -321,7 +321,7 @@ class _TextBox(_Widget):
     def foreground(self, fg):
         self._foreground = fg
         if self.layout:
-            self.layout.colour = fg
+            self.layout.color = fg
 
     @font.setter
     def font(self, value):

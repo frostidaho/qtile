@@ -31,8 +31,8 @@ class CheckUpdates(base.ThreadedPollText):
         ("update_interval", 60, "Update interval in seconds."),
         ('execute', None, 'Command to execute on click'),
         ("display_format", "Updates: {updates}", "Display format if updates available"),
-        ("colour_no_updates", "ffffff", "Colour when there's no updates."),
-        ("colour_have_updates", "ffffff", "Colour when there are updates.")
+        ("color_no_updates", "ffffff", "Color when there's no updates."),
+        ("color_have_updates", "ffffff", "Color when there are updates.")
     ]
 
     def __init__(self, **config):
@@ -66,14 +66,14 @@ class CheckUpdates(base.ThreadedPollText):
         except CalledProcessError:
             updates = ""
         num_updates = str(len(updates.splitlines()) - self.subtr)
-        self._set_colour(num_updates)
+        self._set_color(num_updates)
         return self.display_format.format(**{"updates": num_updates})
 
-    def _set_colour(self, num_updates):
+    def _set_color(self, num_updates):
         if num_updates:
-            self.layout.colour = self.colour_have_updates
+            self.layout.color = self.color_have_updates
         else:
-            self.layout.colour = self.colour_no_updates
+            self.layout.color = self.color_no_updates
 
     def poll(self):
         if not self.cmd:

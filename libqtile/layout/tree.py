@@ -230,7 +230,7 @@ class Section(TreeNode):
         # draw the section title
         layout._layout.font_size = layout.section_fontsize
         layout._layout.text = self.add_superscript(self.title)
-        layout._layout.colour = layout.section_fg
+        layout._layout.color = layout.section_fg
         layout._layout.draw(
             x=layout.section_left,
             y=top + layout.section_top
@@ -264,7 +264,7 @@ class Window(TreeNode):
         else:
             fg = layout.inactive_fg
             bg = layout.inactive_bg
-        layout._layout.colour = fg
+        layout._layout.color = fg
         layout._layout.width = layout.panel_width - left
         # get a text frame from the above
         framed = layout._layout.framed(

@@ -33,8 +33,8 @@ class Cmus(base.ThreadPoolText):
     """
     orientations = base.ORIENTATION_HORIZONTAL
     defaults = [
-        ('play_color', '00ff00', 'Text colour when playing.'),
-        ('noplay_color', 'cecece', 'Text colour when not playing.'),
+        ('play_color', '00ff00', 'Text color when playing.'),
+        ('noplay_color', 'cecece', 'Text color when not playing.'),
         ('max_chars', 0, 'Maximum number of characters to display in widget.'),
         ('update_interval', 0.5, 'Update Time in seconds.')
     ]
@@ -80,9 +80,9 @@ class Cmus(base.ThreadPoolText):
             if self.status != status:
                 self.status = status
                 if self.status == "playing":
-                    self.layout.colour = self.play_color
+                    self.layout.color = self.play_color
                 else:
-                    self.layout.colour = self.noplay_color
+                    self.layout.color = self.noplay_color
             self.local = info['file'].startswith("/")
             title = info['title']
             if self.local:

@@ -78,10 +78,10 @@ class Wmii(Layout):
         ),
     """
     defaults = [
-        ("border_focus", "#881111", "Border colour for the focused window."),
-        ("border_normal", "#220000", "Border colour for un-focused windows."),
-        ("border_focus_stack", "#0000ff", "Border colour for un-focused windows."),
-        ("border_normal_stack", "#000022", "Border colour for un-focused windows."),
+        ("border_focus", "#881111", "Border color for the focused window."),
+        ("border_normal", "#220000", "Border color for un-focused windows."),
+        ("border_focus_stack", "#0000ff", "Border color for un-focused windows."),
+        ("border_normal_stack", "#000022", "Border color for un-focused windows."),
         ("grow_amount", 5, "Amount by which to grow/shrink a window."),
         ("border_width", 2, "Border width."),
         ("name", "wmii", "Name of this layout."),

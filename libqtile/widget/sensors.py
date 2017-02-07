@@ -52,9 +52,9 @@ class ThermalSensor(base.InLoopPollText):
             'threshold',
             70,
             'If the current temperature value is above, '
-            'then change to foreground_alert colour'
+            'then change to foreground_alert color'
         ),
-        ('foreground_alert', 'ff0000', 'Foreground colour alert'),
+        ('foreground_alert', 'ff0000', 'Foreground color alert'),
     ]
 
     def __init__(self, **config):
@@ -114,7 +114,7 @@ class ThermalSensor(base.InLoopPollText):
         text += "".join(temp_values.get(self.tag_sensor, ['N/A']))
         temp_value = float(temp_values.get(self.tag_sensor, [0])[0])
         if temp_value > self.threshold:
-            self.layout.colour = self.foreground_alert
+            self.layout.color = self.foreground_alert
         else:
-            self.layout.colour = self.foreground_normal
+            self.layout.color = self.foreground_normal
         return text

@@ -51,9 +51,9 @@ class DF(base.ThreadedPollText):
 
     def draw(self):
         if self.user_free <= self.warn_space:
-            self.layout.colour = self.warn_color
+            self.layout.color = self.warn_color
         else:
-            self.layout.colour = self.foreground
+            self.layout.color = self.foreground
 
         base.ThreadedPollText.draw(self)
 

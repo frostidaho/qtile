@@ -44,9 +44,9 @@ from .log_utils import logger
 
 
 class TextLayout(object):
-    def __init__(self, drawer, text, colour, font_family, font_size,
+    def __init__(self, drawer, text, color, font_family, font_size,
                  font_shadow, wrap=True, markup=False):
-        self.drawer, self.colour = drawer, colour
+        self.drawer, self.color = drawer, color
         layout = drawer.ctx.create_layout()
         layout.set_alignment(pangocffi.ALIGN_CENTER)
         if not wrap:  # pango wraps by default
@@ -130,7 +130,7 @@ class TextLayout(object):
             self.drawer.ctx.move_to(x + 1, y + 1)
             self.drawer.ctx.show_layout(self.layout)
 
-        self.drawer.set_source_rgb(self.colour)
+        self.drawer.set_source_rgb(self.color)
         self.drawer.ctx.move_to(x, y)
         self.drawer.ctx.show_layout(self.layout)
 
@@ -332,20 +332,20 @@ class Drawer(object):
         logger.debug('drawer set_source_rgb() color: {}; {}'.format(color, tr_color))
         self.ctx.set_source_rgba(*tr_color)
 
-    def clear(self, colour):
+    def clear(self, color):
         self.ctx.set_operator(cairocffi.OPERATOR_CLEAR)
         self.ctx.paint()
         self.ctx.set_operator(cairocffi.OPERATOR_OVER)
-        # logger.warning('drawer clear color: {}'.format(colour))
-        self.set_source_rgb(colour)
-        self.ctx.rectangle(0, 0, self.width, self.height)
-        self.ctx.fill()
-        self.ctx.stroke()
+        # logger.warning('drawer clear color: {}'.format(color))
+        # self.set_source_rgb(color)
+        # self.ctx.rectangle(0, 0, self.width, self.height)
+        # self.ctx.fill()
+        # self.ctx.stroke()
 
-    def textlayout(self, text, colour, font_family, font_size, font_shadow,
+    def textlayout(self, text, color, font_family, font_size, font_shadow,
                    markup=False, **kw):
         """Get a text layout"""
-        return TextLayout(self, text, colour, font_family, font_size,
+        return TextLayout(self, text, color, font_family, font_size,
                           font_shadow, markup=markup, **kw)
 
     def max_layout_size(self, texts, font_family, font_size):
@@ -395,6 +395,7 @@ class Drawer(object):
         return maxwidth, maxheight
 
     def draw_vbar(self, color, x, y1, y2, linewidth=1):
+        self.clear(color)
         self.set_source_rgb(color)
         self.ctx.move_to(x, y1)
         self.ctx.line_to(x, y2)
@@ -402,6 +403,7 @@ class Drawer(object):
         self.ctx.stroke()
 
     def draw_hbar(self, color, x1, x2, y, linewidth=1):
+        self.clear(color)
         self.set_source_rgb(color)
         self.ctx.move_to(x1, y)
         self.ctx.line_to(x2, y)

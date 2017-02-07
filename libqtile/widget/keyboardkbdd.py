@@ -38,9 +38,9 @@ class KeyboardKbdd(base.ThreadedPollText):
         ("configured_keyboards", ["us", "ir"],
          "your predefined list of keyboard layouts."
          "example: ['us', 'ir', 'es']"),
-        ("colours", None,
-         "foreground colour for each layout"
-         "either 'None' or a list of colours."
+        ("colors", None,
+         "foreground color for each layout"
+         "either 'None' or a list of colors."
          "example: ['ffffff', 'E6F0AF']. ")
     ]
 
@@ -72,19 +72,19 @@ class KeyboardKbdd(base.ThreadedPollText):
         """
         Handler for "layoutChanged" dbus signal.
         """
-        if self.colours:
-            self._set_colour(layout_changed)
+        if self.colors:
+            self._set_color(layout_changed)
         self.keyboard = self.configured_keyboards[layout_changed]
 
-    def _set_colour(self, index):
-        if isinstance(self.colours, list):
+    def _set_color(self, index):
+        if isinstance(self.colors, list):
             try:
-                self.layout.colour = self.colours[index]
+                self.layout.color = self.colors[index]
             except ValueError:
-                self._setColour(index - 1)
+                self._setColor(index - 1)
         else:
-            logger.error('variable "colours" should be a list, to set a\
-                            colour for all layouts, use "foreground".')
+            logger.error('variable "colors" should be a list, to set a\
+                            color for all layouts, use "foreground".')
 
     def poll(self):
         if not self.is_kbdd_running:

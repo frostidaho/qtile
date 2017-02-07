@@ -152,7 +152,7 @@ class Bar(Gap, configurable.Configurable):
         width of a vertical bar.
     """
     defaults = [
-        ("background", "#000000", "Background colour."),
+        ("background", "#000000", "Background color."),
         ("opacity", 1, "Bar window opacity."),
     ]
 

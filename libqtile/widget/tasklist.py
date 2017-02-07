@@ -40,14 +40,14 @@ class TaskList(base._Widget, base.PaddingMixin, base.MarginMixin):
     defaults = [
         ("font", "Arial", "Default font"),
         ("fontsize", None, "Font size. Calculated if None."),
-        ("foreground", "ffffff", "Foreground colour"),
+        ("foreground", "ffffff", "Foreground color"),
         (
             "fontshadow",
             None,
             "font shadow color, default is None(no shadow)"
         ),
         ("borderwidth", 2, "Current group border width"),
-        ("border", "215578", "Border colour"),
+        ("border", "215578", "Border color"),
         ("rounded", True, "To round or not to round borders"),
         (
             "highlight_method",
@@ -129,7 +129,7 @@ class TaskList(base._Widget, base.PaddingMixin, base.MarginMixin):
         self.layout.text = text
         self.layout.font_family = self.font
         self.layout.font_size = self.fontsize
-        self.layout.colour = textcolor
+        self.layout.color = textcolor
         if width is not None:
             self.layout.width = width
 

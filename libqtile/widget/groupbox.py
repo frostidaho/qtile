@@ -89,7 +89,7 @@ class _GroupBase(base._TextBox, base.PaddingMixin, base.MarginMixin):
         self.layout.text = text
         self.layout.font_family = self.font
         self.layout.font_size = self.fontsize
-        self.layout.colour = textcolor
+        self.layout.color = textcolor
         if width is not None:
             self.layout.width = width
         if line:
@@ -149,8 +149,8 @@ class GroupBox(_GroupBase):
     """A widget that graphically displays the current group"""
     orientations = base.ORIENTATION_HORIZONTAL
     defaults = [
-        ("active", "FFFFFF", "Active group font colour"),
-        ("inactive", "404040", "Inactive group font colour"),
+        ("active", "FFFFFF", "Active group font color"),
+        ("inactive", "404040", "Inactive group font color"),
         (
             "highlight_method",
             "border",
@@ -161,17 +161,17 @@ class GroupBox(_GroupBase):
         (
             "this_current_screen_border",
             "215578",
-            "Border or line colour for group on this screen when focused."
+            "Border or line color for group on this screen when focused."
         ),
         (
             "this_screen_border",
             "215578",
-            "Border or line colour for group on this screen when unfocused."
+            "Border or line color for group on this screen when unfocused."
         ),
         (
             "other_screen_border",
             "404040",
-            "Border or line colour for group on other screen."
+            "Border or line color for group on other screen."
         ),
         (
             "highlight_color",

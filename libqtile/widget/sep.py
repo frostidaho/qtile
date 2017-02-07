@@ -32,7 +32,7 @@ class Sep(base._Widget):
     defaults = [
         ("padding", 2, "Padding on either side of separator."),
         ("linewidth", 1, "Width of separator line."),
-        ("foreground", "888888", "Separator line colour."),
+        ("foreground", "888888", "Separator line color."),
         (
             "size_percent",
             80,

@@ -133,8 +133,8 @@ class Stack(Layout):
     mature and flexible layout in Qtile.
     """
     defaults = [
-        ("border_focus", "#0000ff", "Border colour for the focused window."),
-        ("border_normal", "#000000", "Border colour for un-focused windows."),
+        ("border_focus", "#0000ff", "Border color for the focused window."),
+        ("border_normal", "#000000", "Border color for un-focused windows."),
         ("border_width", 1, "Border width."),
         ("name", "stack", "Name of this layout."),
         ("autosplit", False, "Auto split all new stacks."),

@@ -40,9 +40,9 @@ class Pacman(base.ThreadedPollText):
 
     def draw(self):
         if self.text == '0':
-            self.layout.colour = self.unavailable
+            self.layout.color = self.unavailable
         else:
-            self.layout.colour = self.foreground
+            self.layout.color = self.foreground
         base.ThreadedPollText.draw(self)
 
     def poll(self):

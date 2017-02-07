@@ -210,8 +210,8 @@ class GridInfo(object):
 class RatioTile(Layout):
     """Tries to tile all windows in the width/height ratio passed in"""
     defaults = [
-        ("border_focus", "#0000ff", "Border colour for the focused window."),
-        ("border_normal", "#000000", "Border colour for un-focused windows."),
+        ("border_focus", "#0000ff", "Border color for the focused window."),
+        ("border_normal", "#000000", "Border color for un-focused windows."),
         ("border_width", 1, "Border width."),
         ("name", "ratiotile", "Name of this layout."),
         ("margin", 0, "Margin of the layout"),

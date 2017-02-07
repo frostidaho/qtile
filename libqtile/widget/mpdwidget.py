@@ -65,7 +65,7 @@ class Mpd(base.ThreadPoolText):
                               "connected"),
         ("do_color_progress", True, "Whether to indicate progress in song by "
                                     "altering message color"),
-        ("foreground_progress", "ffffff", "Foreground progress colour"),
+        ("foreground_progress", "ffffff", "Foreground progress color"),
         ("reconnect", False, "Attempt to reconnect if initial connection failed"),
         ("reconnect_interval", 1, "Time to delay between connection attempts."),
         ("update_interval", 0.5, "Update Time in seconds.")
