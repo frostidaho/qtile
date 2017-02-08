@@ -1,6 +1,11 @@
-=====
-Qtile
-=====
+=======================
+frostidaho's Qtile fork
+=======================
+
+Differences between this fork and main qtile repo
+=================================================
+* KeyMap class in libqtile/config.py
+* An arch linux PKGBUILD (make makepkg)
 
 |travis| |coveralls| |rtd|
 
