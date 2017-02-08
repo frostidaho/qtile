@@ -337,10 +337,10 @@ class Drawer(object):
         self.ctx.paint()
         self.ctx.set_operator(cairocffi.OPERATOR_OVER)
         # logger.warning('drawer clear color: {}'.format(color))
-        # self.set_source_rgb(color)
-        # self.ctx.rectangle(0, 0, self.width, self.height)
-        # self.ctx.fill()
-        # self.ctx.stroke()
+        self.set_source_rgb(color)
+        self.ctx.rectangle(0, 0, self.width, self.height)
+        self.ctx.fill()
+        self.ctx.stroke()
 
     def textlayout(self, text, color, font_family, font_size, font_shadow,
                    markup=False, **kw):
