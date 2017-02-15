@@ -86,18 +86,10 @@ def init_log(log_level=WARNING, log_path=True, log_truncate=False,
     # If we have a log path, we'll also setup a log file
     if log_path:
         if not isinstance(log_path, str):
-            data_directory = os.path.expandvars('$XDG_DATA_HOME')
-            if data_directory == '$XDG_DATA_HOME':
-                # if variable wasn't set
-                data_directory = os.path.expanduser("~/.local/share")
-            data_directory = os.path.join(data_directory, 'qtile')
+            data_directory = os.getenv('XDG_DATA_HOME', '~/.local/share')
             if not os.path.exists(data_directory):
                 os.makedirs(data_directory)
-            log_path = os.path.join(data_directory, '%s.log')
-        try:
-            log_path %= 'qtile'
-        except TypeError:  # Happens if log_path doesn't contain formatters.
-            pass
+            log_path = os.path.join(data_directory, 'qtile', 'qtile.log')
         log_path = os.path.expanduser(log_path)
         if log_truncate:
             with open(log_path, "w"):
