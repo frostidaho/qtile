@@ -26,9 +26,19 @@ from logging.handlers import RotatingFileHandler
 import os
 import sys
 import warnings
+import errno
 
 logger = getLogger(__package__)
 
+def mkdir_p(path):
+    # http://stackoverflow.com/a/600612
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 class ColorFormatter(Formatter):
     """Logging formatter adding console colors to the output."""
@@ -87,10 +97,9 @@ def init_log(log_level=WARNING, log_path=True, log_truncate=False,
     if log_path:
         if not isinstance(log_path, str):
             data_directory = os.getenv('XDG_DATA_HOME', '~/.local/share')
-            if not os.path.exists(data_directory):
-                os.makedirs(data_directory)
             log_path = os.path.join(data_directory, 'qtile', 'qtile.log')
         log_path = os.path.expanduser(log_path)
+        mkdir_p(os.path.dirname(log_path))
         if log_truncate:
             with open(log_path, "w"):
                 pass
