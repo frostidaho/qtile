@@ -1,13 +1,13 @@
 # Maintainer: frostidaho@gmail.com
 
 pkgname=qtile-py3ida-git
-pkgver=2664.b1ee45b
+pkgver=2673.2984afb
 pkgrel=1
 pkgdesc="Python3 full-featured, pure-Python tiling window manager. (git version)"
 arch=('any')
 url="http://www.qtile.org"
 license=('MIT')
-depends=('python' 'pango' 'python-xcffib>=0.1.10' 'python-cairocffi' 'python-six' 'python-setproctitle')
+depends=('python' 'pango' 'python-xcffib>=0.5.1' 'python-cairocffi' 'python-six' 'python-setproctitle')
 makedepends=('python-setuptools' 'git')
 # optdepends=('python-setproctitle: change the process name to qtile')
 provides=('qtile')
