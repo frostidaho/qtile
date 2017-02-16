@@ -126,6 +126,7 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
                 raise
 
     def _init_log(log_level, *handlers):
+        "Set logger to log_level & add handlers"
         for handler in handlers:
             logger.addHandler(handler)
         logger.setLevel(log_level)
