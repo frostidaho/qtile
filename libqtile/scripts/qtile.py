@@ -98,7 +98,7 @@ def make_qtile():
     )
     parser.add_argument(
         '--log-stdout',
-        action='store_false',
+        action='store_true',
         help='Send log output also to stdout'
     )
     parser.add_argument(
