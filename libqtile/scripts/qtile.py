@@ -94,7 +94,12 @@ def make_qtile():
         '--log-path',
         default=DEFAULT_LOG_PATH,
         dest='log_path',
-        help="Save the log here"
+        help="Save the log here (Default: '{}')".format(DEFAULT_LOG_PATH)
+    )
+    parser.add_argument(
+        '--log-stdout',
+        action='store_false',
+        help='Send log output also to stdout'
     )
     parser.add_argument(
         '--with-state',
@@ -104,7 +109,11 @@ def make_qtile():
     )
     options = parser.parse_args()
     log_level = getattr(logging, options.log_level)
-    init_log(log_level=log_level, options.log_path)
+    init_log(
+        log_level=log_level,
+        path=options.log_path,
+        stream_handler=options.log_stdout,
+    )
 
     try:
         config = confreader.File(options.configfile, is_restart=options.no_spawn)
