@@ -46,6 +46,7 @@ def mkdir_p(path):
         else:
             raise
 
+
 class ColorFormatter(logging.Formatter):
     """Logging formatter adding console colors to the output."""
     black, red, green, yellow, blue, magenta, cyan, white = range(8)
@@ -81,6 +82,7 @@ class ColorFormatter(logging.Formatter):
                 .replace('$BG-' + color, self.color_seq % (value + 40))
         return message + self.reset_seq
 
+
 class GetHandler(object):
     _formatter = {
         'default': logging.Formatter(
@@ -110,6 +112,7 @@ class GetHandler(object):
         file_handler.setFormatter(cls._formatter['default'])
         return file_handler
 
+
 def _init_log(log_level=logging.WARNING, *handlers):
     for handler in handlers:
         logger.addHandler(handler)
@@ -119,6 +122,7 @@ def _init_log(log_level=logging.WARNING, *handlers):
     warnings.simplefilter("always")
     logger.warning('Starting logging for Qtile')
     return logger
+
 
 def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
              stream_handler=True, *other_handlers):
