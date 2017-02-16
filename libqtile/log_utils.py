@@ -37,73 +37,6 @@ DEFAULT_LOG_PATH = os.path.join(LOG_DIR, 'qtile.log')
 TESTS_LOG_PATH = os.path.join(LOG_DIR, 'tests_qtile.log')
 
 
-class ColorFormatter(logging.Formatter):
-    """Logging formatter adding console colors to the output."""
-    black, red, green, yellow, blue, magenta, cyan, white = range(8)
-    colors = {
-        'WARNING': yellow,
-        'INFO': green,
-        'DEBUG': blue,
-        'CRITICAL': yellow,
-        'ERROR': red,
-        'RED': red,
-        'GREEN': green,
-        'YELLOW': yellow,
-        'BLUE': blue,
-        'MAGENTA': magenta,
-        'CYAN': cyan,
-        'WHITE': white
-    }
-    reset_seq = '\033[0m'
-    color_seq = '\033[%dm'
-    bold_seq = '\033[1m'
-
-    def format(self, record):
-        """Format the record with colors."""
-        color = self.color_seq % (30 + self.colors[record.levelname])
-        message = super(ColorFormatter, self).format(record)
-        message = message.replace('$RESET', self.reset_seq)\
-            .replace('$BOLD', self.bold_seq)\
-            .replace('$COLOR', color)
-        for color, value in self.colors.items():
-            message = message.replace(
-                '$' + color, self.color_seq % (value + 30))\
-                .replace('$BG' + color, self.color_seq % (value + 40))\
-                .replace('$BG-' + color, self.color_seq % (value + 40))
-        return message + self.reset_seq
-
-
-class GetHandler(object):
-    "GetHandler is a namespace for handler factories."
-    _formatter = {
-        'default': logging.Formatter(
-            "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
-        ),
-        'color': ColorFormatter(
-            '$RESET$COLOR%(asctime)s $BOLD$COLOR%(name)s %(filename)s:%(funcName)s():L%(lineno)d $RESET %(message)s'
-        ),
-    }
-
-    @classmethod
-    def stream(cls, stream=sys.stdout, colorize=True):
-        stream_handler = logging.StreamHandler(stream)
-        if colorize:
-            stream_handler.setFormatter(cls._formatter['color'])
-        else:
-            stream_handler.setFormatter(cls._formatter['default'])
-        return stream_handler
-
-    @classmethod
-    def rotating_file(cls, log_path, max_size=int(2E6), n_backups=5):
-        file_handler = RotatingFileHandler(
-            log_path,
-            maxBytes=max_size,
-            backupCount=n_backups,
-        )
-        file_handler.setFormatter(cls._formatter['default'])
-        return file_handler
-
-
 def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
              stream_handler=False, *other_handlers):
     """Initialize & return Qtile's root logger
@@ -141,10 +74,22 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
         return logger
 
     all_handlers = []
+    if stream_handler or path:
+        default_formatter = logging.Formatter(
+            "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
+        )
     if stream_handler:
-        all_handlers.append(GetHandler.stream())
+        shandler = logging.StreamHandler(stream=sys.stdout)
+        shandler.setFormatter(default_formatter)
+        all_handlers.append(shandler)
     if path:
         mkdir_p(os.path.dirname(path))
-        all_handlers.append(GetHandler.rotating_file(path))
+        file_handler = RotatingFileHandler(
+            path,
+            maxBytes=int(2E6),
+            backupCount=5,
+        )
+        file_handler.setFormatter(default_formatter)
+        all_handlers.append(file_handler)
     all_handlers.extend(other_handlers)
     return _init_log(log_level, *all_handlers)
