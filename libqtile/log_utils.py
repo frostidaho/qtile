@@ -37,7 +37,10 @@ DEFAULT_LOG_PATH = os.path.expanduser(os.path.join(
 
 
 def mkdir_p(path):
-    # http://stackoverflow.com/a/600612
+    """Create directory at path. Does not raise exception if it already exists.
+
+    Found at: http://stackoverflow.com/a/600612
+    """
     try:
         os.makedirs(path)
     except OSError as exc:  # Python >2.5
@@ -84,6 +87,7 @@ class ColorFormatter(logging.Formatter):
 
 
 class GetHandler(object):
+    "GetHandler is a namespace for handler factories."
     _formatter = {
         'default': logging.Formatter(
             "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
