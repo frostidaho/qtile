@@ -75,15 +75,12 @@ class ColorFormatter(Formatter):
                 .replace('$BG-' + color, self.color_seq % (value + 40))
         return message + self.reset_seq
 
+formatter = Formatter(
+    "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
+)
 
-def init_log(log_level=WARNING, log_path=True, log_truncate=False,
-             log_size=10000000, log_numbackups=1, log_color=True):
-    formatter = Formatter(
-        "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
-    )
-
-    # We'll always use a stream handler
-    stream_handler = StreamHandler(sys.stdout)
+def get_stream_handler(stream=sys.stdout):
+    stream_handler = StreamHandler(stream)
     if log_color:
         color_formatter = ColorFormatter(
             '$RESET$COLOR%(asctime)s $BOLD$COLOR%(name)s %(filename)s:%(funcName)s():L%(lineno)d $RESET %(message)s'
@@ -91,7 +88,22 @@ def init_log(log_level=WARNING, log_path=True, log_truncate=False,
         stream_handler.setFormatter(color_formatter)
     else:
         stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
+    return stream_handler
+
+def get_rot_file_handler(log_path, max_size, n_backups):
+    file_handler = RotatingFileHandler(
+        log_path,
+        maxBytes=max_size,
+        backupCount=n_backups,
+    )
+    file_handler.setFormatter(formatter)
+    return file_handler
+
+def init_log(log_level=WARNING, log_path=True, log_truncate=False,
+             log_size=10000000, log_numbackups=1, log_color=True):
+
+    # We'll always use a stream handler
+    logger.addHandler(get_stream_handler())
 
     # If we have a log path, we'll also setup a log file
     if log_path:
@@ -103,14 +115,7 @@ def init_log(log_level=WARNING, log_path=True, log_truncate=False,
         if log_truncate:
             with open(log_path, "w"):
                 pass
-        file_handler = RotatingFileHandler(
-            log_path,
-            maxBytes=log_size,
-            backupCount=log_numbackups
-        )
-
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        logger.addHandler(get_rot_file_handler(log_path, log_size, log_numbackups))
 
     logger.setLevel(log_level)
     # Capture everything from the warnings module.
