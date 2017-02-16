@@ -21,14 +21,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from logging import getLogger, StreamHandler, Formatter, WARNING, captureWarnings
+import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
 import warnings
 import errno
 
-logger = getLogger(__package__)
+logger = logging.getLogger(__package__)
+DEFAULT_LOG_PATH = os.path.expanduser(os.path.join(
+    os.getenv('XDG_DATA_HOME', '~/.local/share'),
+    'qtile',
+    'qtile.log',
+))
+
 
 def mkdir_p(path):
     # http://stackoverflow.com/a/600612
@@ -40,7 +46,7 @@ def mkdir_p(path):
         else:
             raise
 
-class ColorFormatter(Formatter):
+class ColorFormatter(logging.Formatter):
     """Logging formatter adding console colors to the output."""
     black, red, green, yellow, blue, magenta, cyan, white = range(8)
     colors = {
@@ -64,7 +70,7 @@ class ColorFormatter(Formatter):
     def format(self, record):
         """Format the record with colors."""
         color = self.color_seq % (30 + self.colors[record.levelname])
-        message = Formatter.format(self, record)
+        message = super(ColorFormatter, self).format(record)
         message = message.replace('$RESET', self.reset_seq)\
             .replace('$BOLD', self.bold_seq)\
             .replace('$COLOR', color)
@@ -75,51 +81,58 @@ class ColorFormatter(Formatter):
                 .replace('$BG-' + color, self.color_seq % (value + 40))
         return message + self.reset_seq
 
-formatter = Formatter(
-    "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
-)
 
-def get_stream_handler(stream=sys.stdout):
-    stream_handler = StreamHandler(stream)
-    if log_color:
-        color_formatter = ColorFormatter(
+class formatter(object):
+    """formatter is a namespace containing instances of logging.Formatter()
+
+    for use with the logging library's handlers 
+    """
+        default = logging.Formatter(
+            "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
+        )
+
+        color = ColorFormatter(
             '$RESET$COLOR%(asctime)s $BOLD$COLOR%(name)s %(filename)s:%(funcName)s():L%(lineno)d $RESET %(message)s'
         )
-        stream_handler.setFormatter(color_formatter)
-    else:
-        stream_handler.setFormatter(formatter)
-    return stream_handler
 
-def get_rot_file_handler(log_path, max_size, n_backups):
-    file_handler = RotatingFileHandler(
-        log_path,
-        maxBytes=max_size,
-        backupCount=n_backups,
-    )
-    file_handler.setFormatter(formatter)
-    return file_handler
 
-def init_log(log_level=WARNING, log_path=True, log_truncate=False,
-             log_size=10000000, log_numbackups=1, log_color=True):
+class get_handler(object):
+    @staticmethod
+    def stream(stream=sys.stdout, colorize=True):
+        stream_handler = logging.StreamHandler(stream)
+        if colorize:
+            stream_handler.setFormatter(formatter.color)
+        else:
+            stream_handler.setFormatter(formatter.default)
+        return stream_handler
 
-    # We'll always use a stream handler
-    logger.addHandler(get_stream_handler())
+    @staticmethod
+    def rotating_file(log_path, max_size=int(1E7), n_backups=1):
+        file_handler = RotatingFileHandler(
+            log_path,
+            maxBytes=max_size,
+            backupCount=n_backups,
+        )
+        file_handler.setFormatter(formatter.default)
+        return file_handler
 
-    # If we have a log path, we'll also setup a log file
-    if log_path:
-        if not isinstance(log_path, str):
-            data_directory = os.getenv('XDG_DATA_HOME', '~/.local/share')
-            log_path = os.path.join(data_directory, 'qtile', 'qtile.log')
-        log_path = os.path.expanduser(log_path)
-        mkdir_p(os.path.dirname(log_path))
-        if log_truncate:
-            with open(log_path, "w"):
-                pass
-        logger.addHandler(get_rot_file_handler(log_path, log_size, log_numbackups))
+def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
+             stream_handler=True, *other_handlers):
+    all_handlers = []
+    if stream_handler:
+        all_handlers.append(get_handler.stream())
+    if path:
+        mkdir_p(os.path.dirname(path))
+        all_handlers.append(get_handler.rotating_file(path))
+    all_handlers.extend(other_handlers)
+
+    for handler in handlers:
+        logger.addHandler(handler)
 
     logger.setLevel(log_level)
     # Capture everything from the warnings module.
-    captureWarnings(True)
+    logging.captureWarnings(True)
     warnings.simplefilter("always")
     logger.warning('Starting logging for Qtile')
     return logger
+
