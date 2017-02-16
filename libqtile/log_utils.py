@@ -81,37 +81,33 @@ class ColorFormatter(logging.Formatter):
                 .replace('$BG-' + color, self.color_seq % (value + 40))
         return message + self.reset_seq
 
-class formatter(object):
-    """formatter is a namespace containing instances of logging.Formatter()
-
-    for use with the logging library's handlers 
-    """
-        default = logging.Formatter(
+class GetHandler(object):
+    _formatter = {
+        'default': logging.Formatter(
             "%(asctime)s %(levelname)s %(name)s %(filename)s:%(funcName)s():L%(lineno)d %(message)s"
-        )
-
-        color = ColorFormatter(
+        ),
+        'color': ColorFormatter(
             '$RESET$COLOR%(asctime)s $BOLD$COLOR%(name)s %(filename)s:%(funcName)s():L%(lineno)d $RESET %(message)s'
-        )
+        ),
+    }
 
-class get_handler(object):
-    @staticmethod
-    def stream(stream=sys.stdout, colorize=True):
+    @classmethod
+    def stream(cls, stream=sys.stdout, colorize=True):
         stream_handler = logging.StreamHandler(stream)
         if colorize:
-            stream_handler.setFormatter(formatter.color)
+            stream_handler.setFormatter(cls._formatter['color'])
         else:
-            stream_handler.setFormatter(formatter.default)
+            stream_handler.setFormatter(cls._formatter['default'])
         return stream_handler
 
-    @staticmethod
-    def rotating_file(log_path, max_size=int(1E7), n_backups=1):
+    @classmethod
+    def rotating_file(cls, log_path, max_size=int(2E6), n_backups=5):
         file_handler = RotatingFileHandler(
             log_path,
             maxBytes=max_size,
             backupCount=n_backups,
         )
-        file_handler.setFormatter(formatter.default)
+        file_handler.setFormatter(cls._formatter['default'])
         return file_handler
 
 def _init_log(log_level=logging.WARNING, *handlers):
@@ -135,9 +131,9 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
     """
     all_handlers = []
     if stream_handler:
-        all_handlers.append(get_handler.stream())
+        all_handlers.append(GetHandler.stream())
     if path:
         mkdir_p(os.path.dirname(path))
-        all_handlers.append(get_handler.rotating_file(path))
+        all_handlers.append(GetHandler.rotating_file(path))
     all_handlers.extend(other_handlers)
     return _init_log(log_level, *all_handlers)
