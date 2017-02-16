@@ -81,7 +81,6 @@ class ColorFormatter(logging.Formatter):
                 .replace('$BG-' + color, self.color_seq % (value + 40))
         return message + self.reset_seq
 
-
 class formatter(object):
     """formatter is a namespace containing instances of logging.Formatter()
 
@@ -94,7 +93,6 @@ class formatter(object):
         color = ColorFormatter(
             '$RESET$COLOR%(asctime)s $BOLD$COLOR%(name)s %(filename)s:%(funcName)s():L%(lineno)d $RESET %(message)s'
         )
-
 
 class get_handler(object):
     @staticmethod
@@ -116,19 +114,9 @@ class get_handler(object):
         file_handler.setFormatter(formatter.default)
         return file_handler
 
-def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
-             stream_handler=True, *other_handlers):
-    all_handlers = []
-    if stream_handler:
-        all_handlers.append(get_handler.stream())
-    if path:
-        mkdir_p(os.path.dirname(path))
-        all_handlers.append(get_handler.rotating_file(path))
-    all_handlers.extend(other_handlers)
-
+def _init_log(log_level=logging.WARNING, *handlers):
     for handler in handlers:
         logger.addHandler(handler)
-
     logger.setLevel(log_level)
     # Capture everything from the warnings module.
     logging.captureWarnings(True)
@@ -136,3 +124,20 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
     logger.warning('Starting logging for Qtile')
     return logger
 
+def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
+             stream_handler=True, *other_handlers):
+    """Initialize & return Qtile's root logger
+
+    If path is given log will be written to the file at path.
+    If stream_handler is True log will be written to stdout.
+
+    other_handlers should behave like those found in logging.handlers
+    """
+    all_handlers = []
+    if stream_handler:
+        all_handlers.append(get_handler.stream())
+    if path:
+        mkdir_p(os.path.dirname(path))
+        all_handlers.append(get_handler.rotating_file(path))
+    all_handlers.extend(other_handlers)
+    return _init_log(log_level, *all_handlers)
