@@ -29,11 +29,12 @@ import warnings
 import errno
 
 logger = logging.getLogger(__package__)
-DEFAULT_LOG_PATH = os.path.expanduser(os.path.join(
+LOG_DIR = os.path.expanduser(os.path.join(
     os.getenv('XDG_DATA_HOME', '~/.local/share'),
     'qtile',
-    'qtile.log',
 ))
+DEFAULT_LOG_PATH = os.path.join(LOG_DIR, 'qtile.log')
+TESTS_LOG_PATH = os.path.join(LOG_DIR, 'tests_qtile.log')
 
 
 class ColorFormatter(logging.Formatter):
@@ -104,7 +105,7 @@ class GetHandler(object):
 
 
 def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
-             stream_handler=True, *other_handlers):
+             stream_handler=False, *other_handlers):
     """Initialize & return Qtile's root logger
 
     If path is given log will be written to the file at path.
@@ -127,14 +128,16 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
 
     def _init_log(log_level, *handlers):
         "Set logger to log_level & add handlers"
-        for handler in handlers:
-            logger.addHandler(handler)
+        if not logger.hasHandlers():
+            for handler in handlers:
+                logger.addHandler(handler)
         logger.setLevel(log_level)
         # Capture everything from the warnings module.
         logging.captureWarnings(True)
         warnings.simplefilter("always")
-        msg = 'Starting logging for Qtile with {} handlers'
-        logger.warning(msg.format(len(logger.handlers)))
+        # msg = 'Starting logging for Qtile with {} handlers'
+        # logger.warning(msg.format(len(logger.handlers)))
+        logger.warning('Starting logging for Qtile with {}'.format(logger.handlers))
         return logger
 
     all_handlers = []
