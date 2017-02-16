@@ -36,20 +36,6 @@ DEFAULT_LOG_PATH = os.path.expanduser(os.path.join(
 ))
 
 
-def mkdir_p(path):
-    """Create directory at path. Does not raise exception if it already exists.
-
-    Found at: http://stackoverflow.com/a/600612
-    """
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
 class ColorFormatter(logging.Formatter):
     """Logging formatter adding console colors to the output."""
     black, red, green, yellow, blue, magenta, cyan, white = range(8)
@@ -117,17 +103,6 @@ class GetHandler(object):
         return file_handler
 
 
-def _init_log(log_level=logging.WARNING, *handlers):
-    for handler in handlers:
-        logger.addHandler(handler)
-    logger.setLevel(log_level)
-    # Capture everything from the warnings module.
-    logging.captureWarnings(True)
-    warnings.simplefilter("always")
-    logger.warning('Starting logging for Qtile')
-    return logger
-
-
 def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
              stream_handler=True, *other_handlers):
     """Initialize & return Qtile's root logger
@@ -137,6 +112,29 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
 
     other_handlers should behave like those found in logging.handlers
     """
+    def mkdir_p(path):
+        """Create directory at path. Does not raise exception if it already exists.
+
+        Found at: http://stackoverflow.com/a/600612
+        """
+        try:
+            os.makedirs(path)
+        except OSError as exc:  # Python >2.5
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
+
+    def _init_log(log_level, *handlers):
+        for handler in handlers:
+            logger.addHandler(handler)
+        logger.setLevel(log_level)
+        # Capture everything from the warnings module.
+        logging.captureWarnings(True)
+        warnings.simplefilter("always")
+        logger.warning('Starting logging for Qtile')
+        return logger
+
     all_handlers = []
     if stream_handler:
         all_handlers.append(GetHandler.stream())
