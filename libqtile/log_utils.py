@@ -133,7 +133,8 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
         # Capture everything from the warnings module.
         logging.captureWarnings(True)
         warnings.simplefilter("always")
-        logger.warning('Starting logging for Qtile with handlers "{}"'.format(logger.handlers))
+        msg = 'Starting logging for Qtile with {} handlers'
+        logger.warning(msg.format(len(logger.handlers)))
         return logger
 
     all_handlers = []
