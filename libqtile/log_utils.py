@@ -128,9 +128,10 @@ def init_log(log_level=logging.WARNING, path=DEFAULT_LOG_PATH,
 
     def _init_log(log_level, *handlers):
         "Set logger to log_level & add handlers"
-        if not logger.hasHandlers():
-            for handler in handlers:
-                logger.addHandler(handler)
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+        for handler in handlers:
+            logger.addHandler(handler)
         logger.setLevel(log_level)
         # Capture everything from the warnings module.
         logging.captureWarnings(True)
