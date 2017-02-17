@@ -34,7 +34,8 @@ LOG_DIR = os.path.expanduser(os.path.join(
     'qtile',
 ))
 DEFAULT_LOG_PATH = os.path.join(LOG_DIR, 'qtile.log')
-TESTS_LOG_PATH = os.path.join(LOG_DIR, 'tests_qtile.log')
+# TESTS_LOG_PATH = os.path.join(LOG_DIR, 'tests_qtile.log')
+TESTS_LOG_PATH = ''
 
 def _mkdir_p(path):
     """Create directory at path. Does not raise exception if it already exists.
