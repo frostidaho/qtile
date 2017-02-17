@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=Qtile Debug
-Comment=Qtile Debug Session
-Exec=qtile -l DEBUG
-Type=Application
-Keywords=wm;tiling

@@ -34,7 +34,6 @@ package() {
 
   msg "Copying desktop file..."
   install -D -m 644 resources/qtile.desktop $pkgdir/usr/share/xsessions/qtile.desktop
-  install -D -m 644 resources/qtile_debug.desktop $pkgdir/usr/share/xsessions/qtile_debug.desktop
 
   msg "Running setup.py"
   python setup.py install --root=${pkgdir} --prefix=/usr --optimize=1
