@@ -1,6 +1,9 @@
-from .. import hook, configurable, bar
+import sys
+import traceback
+from .. import hook, configurable, bar, log_utils
 from . import textbox, base
 
+logger = log_utils.logger
 class _StatusUpdatedMixin(object):
 
     def _configure(self, qtile, bar):
@@ -8,8 +11,7 @@ class _StatusUpdatedMixin(object):
 
         @hook.subscribe.status_update(self.status_name)
         def on_update(status, *pargs, **kwargs):
-            self.status = status
-            self.status_update()
+            self.status_run(status, *pargs, **kwargs)
 
     @property
     def status_name(self):
@@ -35,6 +37,16 @@ class _StatusUpdatedMixin(object):
     @status.setter
     def status(self, value):
         self._status = value
+
+    def status_run(self, status, *pargs, **kwargs):
+        "Set status & run status_update()"
+        self.status = status
+        try:
+            self.status_update()
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logger.warning('status_update failed: {}'.format(' '.join(lines)))
 
 
 class StatUpText(_StatusUpdatedMixin, textbox.TextBox):
