@@ -118,7 +118,7 @@ def get_matching_files(dirpath, *names):
     return d
 
 
-LoadedImg = namedtuple('LoadedImg', 'success name path surface')
+LoadedImg = namedtuple('LoadedImg', 'success name path surface pattern')
 class Loader(object):
     """Loader - create cairo surfaces from image files & icons
 
@@ -153,7 +153,7 @@ class Loader(object):
         total = []
         if not path:
             logger.warning("Can't load image with no given path, name=%r", name)
-            return LoadedImg(False, name, path, None)
+            return LoadedImg(False, name, path, None, None)
 
         if name is None:
             name = os.path.basename(path)
@@ -171,7 +171,12 @@ class Loader(object):
         except (OSError, IOError):
             logger.warning("Couldn't open image at path=%r, name=%r", path, name)
             success, surface = False, None
-        return LoadedImg(success, name, path, surface)
+        if surface is None:
+            pattern = None
+        else:
+            pattern = cairocffi.SurfacePattern(surface)
+            pattern.set_filter(cairocffi.FILTER_BEST)
+        return LoadedImg(success, name, path, surface, pattern)
 
     def icons(self, *names):
         mfiles = get_matching_files(self.icon_dirs[0], *names)
