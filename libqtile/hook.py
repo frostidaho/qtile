@@ -99,6 +99,18 @@ class Subscribe(object):
         """
         return self._subscribe('initialized', func)
 
+    def status_update(self, name):
+        """Called when widget status updates are ready
+
+        **Arguments**
+            * ``status`` the new status
+
+        """
+        def wrapper(func):
+            status_name = "status_update_{}".format(name)
+            return self._subscribe(status_name, func)
+        return wrapper
+
     def setgroup(self, func):
         """Called when group is changed
 
@@ -369,7 +381,7 @@ unsubscribe = Unsubscribe()
 
 
 def fire(event, *args, **kwargs):
-    if event not in subscribe.hooks:
+    if (event not in subscribe.hooks) and (not event.startswith('status_update_')):
         raise utils.QtileError("Unknown event: %s" % event)
     if event not in SKIPLOG:
         logger.info("Internal event: %s(%s, %s)", event, args, kwargs)

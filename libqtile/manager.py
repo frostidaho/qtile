@@ -1886,3 +1886,7 @@ class Qtile(command.CommandObject):
         """Extentions should run from command run()"""
         c = cls(self)
         c.run()
+
+    def cmd_update_status(self, name, status):
+        hook.fire('status_update_{}'.format(name), status)
+
