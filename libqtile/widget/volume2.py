@@ -16,7 +16,7 @@ re_vol = re.compile('\[(\d?\d?\d?)%\]')
 BUTTON_UP = 4
 BUTTON_DOWN = 5
 BUTTON_MUTE = 1
-
+DEFAULT_UPDATE_INTERVAL = 0.2
 
 class Volume2(base._TextBox):
     """Widget that display and change volume
@@ -30,7 +30,7 @@ class Volume2(base._TextBox):
         ("channel", "Master", "Channel"),
         ("padding", 3, "Padding left and right. Calculated if None."),
         ("image_loader", None, "instance of libqtile.images.Loader"),
-        ("update_interval", 0.2, "Update time in seconds."),
+        ("update_interval", DEFAULT_UPDATE_INTERVAL, "Update time in seconds."),
         ("emoji", False, "Use emoji to display volume states, only if ``image_loader`` is not set."
                          "The specified font needs to contain the correct unicode characters."),
         ("mute_command", None, "Mute command"),
@@ -49,9 +49,9 @@ class Volume2(base._TextBox):
         self.volume = None
 
     def timer_setup(self):
-        self.timeout_add(self.update_interval, self.update)
         if self.image_loader:
             self.setup_images()
+        self.timeout_add(DEFAULT_UPDATE_INTERVAL, self.update)
 
     def create_amixer_command(self, *args):
         cmd = ['amixer']
