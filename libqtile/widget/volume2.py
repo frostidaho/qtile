@@ -157,13 +157,12 @@ class Volume2(base._TextBox):
             if input_width > self.length:
                 self.length = int(input_width) + self.actual_padding * 2
 
-            imgpat = cairocffi.SurfacePattern(img)
+            imgpat = loaded_img.pattern
 
             matrix = cairocffi.Matrix()
             matrix.translate(self.actual_padding * -1, 0)
 
             imgpat.set_matrix(matrix)
-            imgpat.set_filter(cairocffi.FILTER_BEST)
             self.surfaces[img_name] = imgpat
 
     def get_volume(self):
