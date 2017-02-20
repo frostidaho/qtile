@@ -30,12 +30,14 @@ class Image2(base._Widget, base.MarginMixin):
             raise ValueError('No loaded_image given!')
         elif not self.loaded_image.success:
             raise ValueError('Image was not successfully loaded {!r}'.format(limg))
-        
-        self.pattern = cairocffi.SurfacePattern(self.image)
 
     @property
     def image(self):
         return self.loaded_image.surface
+
+    @property
+    def pattern(self):
+        return self.loaded_image.pattern
 
     @property
     def image_width(self):

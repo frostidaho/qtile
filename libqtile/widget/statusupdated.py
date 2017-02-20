@@ -1,6 +1,5 @@
 from .. import hook, configurable, bar
 from . import textbox, base
-import cairocffi
 
 class _StatusUpdatedMixin(object):
 
@@ -87,7 +86,7 @@ class StatUpImage(_StatusUpdatedMixin, base._Widget):
         if not img.success:
             raise ValueError('Image was not successfully loaded {!r}'.format(img))
         self.image = img.surface
-        self.pattern = cairocffi.SurfacePattern(self.image)
+        self.pattern = img.pattern
 
     def status_update(self):
         self.set_image(self.status)
