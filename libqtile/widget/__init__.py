@@ -77,3 +77,9 @@ safe_import("moc", "Moc")
 safe_import("memory", "Memory")
 safe_import("idlerpg", "IdleRPG")
 safe_import("pomodoro", "Pomodoro")
+
+safe_import("currentkeymap", "CurrentKeyMap")
+safe_import("statusupdated", ["StatUpText", "StatUpImage"])
+safe_import("volumeimg", "VolumeImg")
+safe_import("image2", "Image2")
+

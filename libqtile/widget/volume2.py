@@ -1,35 +1,3 @@
-# Copyright (c) 2010, 2012, 2014 roger
-# Copyright (c) 2011 Kirk Strauser
-# Copyright (c) 2011 Florian Mounier
-# Copyright (c) 2011 Mounier Florian
-# Copyright (c) 2011 Roger Duran
-# Copyright (c) 2012-2015 Tycho Andersen
-# Copyright (c) 2013 Tao Sauvage
-# Copyright (c) 2013 Craig Barnes
-# Copyright (c) 2014-2015 Sean Vig
-# Copyright (c) 2014 Adi Sieker
-# Copyright (c) 2014 dmpayton
-# Copyright (c) 2014 Jody Frankowski
-# Copyright (c) 2016 Christoph Lassner
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 import os
 import re
 import subprocess
@@ -41,7 +9,7 @@ from .. import bar
 from libqtile.log_utils import logger
 
 __all__ = [
-    'Volume',
+    'Volume2',
 ]
 
 re_vol = re.compile('\[(\d?\d?\d?)%\]')
@@ -50,10 +18,10 @@ BUTTON_DOWN = 5
 BUTTON_MUTE = 1
 
 
-class Volume(base._TextBox):
+class Volume2(base._TextBox):
     """Widget that display and change volume
 
-    If theme_path is set it draw widget as icons.
+    If image_loader is set it draw widget as icons.
     """
     orientations = base.ORIENTATION_HORIZONTAL
     defaults = [
@@ -61,9 +29,9 @@ class Volume(base._TextBox):
         ("device", "default", "Device Name"),
         ("channel", "Master", "Channel"),
         ("padding", 3, "Padding left and right. Calculated if None."),
-        ("theme_path", None, "Path of the icons"),
+        ("image_loader", None, "instance of libqtile.images.Loader"),
         ("update_interval", 0.2, "Update time in seconds."),
-        ("emoji", False, "Use emoji to display volume states, only if ``theme_path`` is not set."
+        ("emoji", False, "Use emoji to display volume states, only if ``image_loader`` is not set."
                          "The specified font needs to contain the correct unicode characters."),
         ("mute_command", None, "Mute command"),
         ("volume_up_command", None, "Volume up command"),
@@ -72,9 +40,9 @@ class Volume(base._TextBox):
     ]
 
     def __init__(self, **config):
-        base._TextBox.__init__(self, '0', width=bar.CALCULATED, **config)
-        self.add_defaults(Volume.defaults)
-        if self.theme_path:
+        super(Volume2, self).__init__('0', width=bar.CALCULATED, **config)
+        self.add_defaults(Volume2.defaults)
+        if self.image_loader:
             self.length_type = bar.STATIC
             self.length = 0
         self.surfaces = {}
@@ -82,7 +50,7 @@ class Volume(base._TextBox):
 
     def timer_setup(self):
         self.timeout_add(self.update_interval, self.update)
-        if self.theme_path:
+        if self.image_loader:
             self.setup_images()
 
     def create_amixer_command(self, *args):
@@ -135,7 +103,7 @@ class Volume(base._TextBox):
         self.timeout_add(self.update_interval, self.update)
 
     def _update_drawer(self):
-        if self.theme_path:
+        if self.image_loader:
             self.drawer.clear(self.background or self.bar.background)
             if self.volume <= 0:
                 img_name = 'audio-volume-muted'
@@ -165,7 +133,7 @@ class Volume(base._TextBox):
 
     def setup_images(self):
         from libqtile.images import Loader
-        ldr = Loader(self.theme_path)
+        ldr = self.image_loader
         images = [
             'audio-volume-high',
             'audio-volume-low',
@@ -174,7 +142,7 @@ class Volume(base._TextBox):
         ]
         loaded_images = ldr.icons(*images)
         if any((x.success == False for x in loaded_images)):
-            self.theme_path = None
+            self.image_loader = None
             self.length_type = bar.CALCULATED
             logger.exception('Volume switching to text mode')
             return
@@ -186,20 +154,15 @@ class Volume(base._TextBox):
             input_width = img.get_width()
             input_height = img.get_height()
 
-            sp = input_height / float(self.bar.height - 1)
-
-            width = input_width / sp
-            if width > self.length:
-                self.length = int(width) + self.actual_padding * 2
+            if input_width > self.length:
+                self.length = int(input_width) + self.actual_padding * 2
 
             imgpat = cairocffi.SurfacePattern(img)
 
-            scaler = cairocffi.Matrix()
+            matrix = cairocffi.Matrix()
+            matrix.translate(self.actual_padding * -1, 0)
 
-            scaler.scale(sp, sp)
-            scaler.translate(self.actual_padding * -1, 0)
-            imgpat.set_matrix(scaler)
-
+            imgpat.set_matrix(matrix)
             imgpat.set_filter(cairocffi.FILTER_BEST)
             self.surfaces[img_name] = imgpat
 
@@ -226,10 +189,10 @@ class Volume(base._TextBox):
             return -1
 
     def draw(self):
-        if self.theme_path:
+        if self.image_loader:
             self.drawer.draw(offsetx=self.offset, width=self.length)
         else:
-            base._TextBox.draw(self)
+            super(Volume2, self).draw()
 
     def cmd_increase_vol(self):
         # Emulate button press.

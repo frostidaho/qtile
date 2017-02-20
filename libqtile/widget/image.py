@@ -27,6 +27,8 @@ import cairocffi
 
 from . import base
 from .. import bar
+from .. import images
+
 
 class Image(base._Widget, base.MarginMixin):
     """Display a PNG image on the bar"""
@@ -59,12 +61,12 @@ class Image(base._Widget, base.MarginMixin):
 
         self.filename = os.path.expanduser(self.filename)
 
-        try:
-            self.image = cairocffi.ImageSurface.create_from_png(self.filename)
-        except MemoryError:
-            raise ValueError("The image '%s' doesn't seem to be a valid PNG"
-                % (self.filename))
-
+        ldr = images.Loader()
+        loaded_img = ldr(self.filename)
+        if not loaded_img.success:
+            raise ValueError("Couldn't load the image {!r}".format(self.filename))
+        self.image = loaded_img.surface
+        
         self.pattern = cairocffi.SurfacePattern(self.image)
 
         self.image_width = self.image.get_width()
