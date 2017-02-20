@@ -1850,3 +1850,7 @@ class Qtile(command.CommandObject):
     def cmd_run_extension(self, extension):
         """Run extensions"""
         extension.run()
+
+    def cmd_update_status(self, name, status):
+        hook.fire('status_update_{}'.format(name), status)
+
