@@ -14,7 +14,7 @@ class _StatusUpdatedMixin(object):
 
     Optional:
     cls.status_poller() - a method for widgets that need polling
-                          it runs status_run
+                          it returns a new status
     cls.status_poll_timeout - timeout for status_poller in seconds
     """
 
@@ -23,7 +23,7 @@ class _StatusUpdatedMixin(object):
 
         @hook.subscribe.status_update(self.status_name)
         def on_update(status, *pargs, **kwargs):
-            self.status_run(status, *pargs, **kwargs)
+            self.status_set_and_update(status, *pargs, **kwargs)
 
     @property
     def status_name(self):
@@ -62,7 +62,7 @@ class _StatusUpdatedMixin(object):
     def status_poll_timeout(self, value):
         self._status_poll_timeout = value
 
-    def status_run(self, status, method_name='', *pargs, **kwargs):
+    def status_set_and_update(self, status, method_name='', *pargs, **kwargs):
         "Set status & run status_update()"
         if method_name:
             logger.info('%r is running %r', self, method_name)
@@ -76,12 +76,41 @@ class _StatusUpdatedMixin(object):
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             logger.warning('status_update failed: {}'.format(' '.join(lines)))
 
-    def timer_setup(self):
+    def status_call_poller(self):
+        def callback(future):
+            try:
+                result = future.result()
+            except Exception:
+                logger.exception('status_poller() raised an exception in status_call_poller.callback')
+                return
+            self.status_set_and_update(result)
+
         try:
-            def wrapper():
-                self.status_poller()
-                self.timeout_add(self.status_poll_timeout, wrapper)
-            wrapper()
+            future = self.qtile.run_in_executor(self.status_poller)
+            future.add_done_callback(callback)
+        except Exception:
+            logger.exception('status_poller() raised an exception in status_call_poller')
+
+    def timer_setup(self):
+        def callback(future):
+            try:
+                result = future.result()
+            except Exception:
+                logger.exception(
+                    ('status_poller() raised an exception in '
+                     'timer_setup.callback. Not rescheduling status_poller()'))
+                return
+            self.status_set_and_update(result)
+            self.timeout_add(self.status_poll_timeout, fn)
+
+        def fn():
+            future = self.qtile.run_in_executor(self.status_poller)
+            future.add_done_callback(callback)
+            return future
+
+        try:
+            self.status_poller
+            fn()
             logger.info('Set up status_poller for %r', self)
         except AttributeError:
             logger.info('No status_poller for %r', self)
