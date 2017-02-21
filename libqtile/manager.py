@@ -1825,6 +1825,6 @@ class Qtile(command.CommandObject):
         c = cls(self)
         c.run()
 
-    def cmd_update_status(self, name, status):
-        hook.fire('status_update_{}'.format(name), status)
+    def cmd_update_status(self, name, status, *pargs, **kwargs):
+        hook.fire('status_update_{}'.format(name), status, *pargs, **kwargs)
 

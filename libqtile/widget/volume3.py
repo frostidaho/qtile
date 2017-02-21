@@ -38,18 +38,10 @@ class Volume3(statusupdated.StatUpImage):
             raise ValueError('Problem loading one of the volume images')
         super(Volume3, self).__init__(*pargs, **kwargs)
 
-    def timer_setup(self):
-        self.timerupdate()
-
-    def timerupdate(self):
+    def status_poller(self):
         audio_status = get_vol()
         for icon_name,test in icons.items():
             if test(audio_status):
                 break
         self.status_run(icon_name)
-        self.timeout_add(
-            DEFAULT_UPDATE_INTERVAL,
-            self.timerupdate,
-        )
-
 
