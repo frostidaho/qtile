@@ -43,5 +43,5 @@ class Volume3(statusupdated.StatUpImage):
         for icon_name,test in icons.items():
             if test(audio_status):
                 break
-        self.status_run(icon_name)
+        return icon_name
 
