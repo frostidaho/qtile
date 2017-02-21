@@ -4,7 +4,19 @@ from .. import hook, configurable, bar, log_utils
 from . import textbox, base
 
 logger = log_utils.logger
+DEFAULT_UPDATE_INTERVAL = 1.0
+
 class _StatusUpdatedMixin(object):
+    """_StatusUpdatedMixin
+
+    Classes which inherit from _StatusUpdatedMixin should define
+    cls.status_update() - which will refresh the widget with current status
+
+    Optional:
+    cls.status_poller() - a method for widgets that need polling
+                          it runs status_run
+    cls.status_poll_timeout - timeout for status_poller in seconds
+    """
 
     def _configure(self, qtile, bar):
         super(_StatusUpdatedMixin, self)._configure(qtile, bar)
@@ -38,19 +50,50 @@ class _StatusUpdatedMixin(object):
     def status(self, value):
         self._status = value
 
-    def status_run(self, status, *pargs, **kwargs):
+    @property
+    def status_poll_timeout(self):
+        try:
+            return self._status_poll_timeout
+        except AttributeError:
+            self.status_poll_timeout = DEFAULT_UPDATE_INTERVAL
+            return self.status_poll_timeout
+
+    @status_poll_timeout.setter
+    def status_poll_timeout(self, value):
+        self._status_poll_timeout = value
+
+    def status_run(self, status, method_name='', *pargs, **kwargs):
         "Set status & run status_update()"
+        if method_name:
+            logger.info('%r is running %r', self, method_name)
+            return getattr(self, method_name)()
+
         self.status = status
         try:
-            self.status_update()
+            self.status_update(*pargs, **kwargs)
         except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             logger.warning('status_update failed: {}'.format(' '.join(lines)))
 
+    def timer_setup(self):
+        try:
+            def wrapper():
+                self.status_poller()
+                self.timeout_add(self.status_poll_timeout, wrapper)
+            wrapper()
+            logger.info('Set up status_poller for %r', self)
+        except AttributeError:
+            logger.info('No status_poller for %r', self)
+
+        try:
+            super(_StatusUpdatedMixin, self).timer_setup()
+        except AttributeError:
+            logger.info("Widget class %r does not have a timer_setup on superclass")
+
 
 class StatUpText(_StatusUpdatedMixin, textbox.TextBox):
-    def status_update(self):
+    def status_update(self, *pargs, **kwargs):
         super(StatUpText, self).update(self.status)
 
     @property
@@ -100,7 +143,7 @@ class StatUpImage(_StatusUpdatedMixin, base._Widget):
         self.image = img.surface
         self.pattern = img.pattern
 
-    def status_update(self):
+    def status_update(self, *pargs, **kwargs):
         self.set_image(self.status)
         self.draw()
 
