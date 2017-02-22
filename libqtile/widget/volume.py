@@ -172,7 +172,7 @@ class Volume(base._TextBox):
             'audio-volume-medium',
             'audio-volume-muted',
         ]
-        loaded_images = ldr.icons(*images)
+        loaded_images = ldr.icons(images)
         if any((x.success == False for x in loaded_images)):
             self.theme_path = None
             self.length_type = bar.CALCULATED
