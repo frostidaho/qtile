@@ -40,7 +40,10 @@ man:
 update-requirements:
 	pip-compile requirements.in
 
+
 .PHONY: makepkg
 makepkg:
+	rm -f qtile-*.pkg.tar.xz
 	makepkg -c -s -f
+	git checkout -- PKGBUILD
 
