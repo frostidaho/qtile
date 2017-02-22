@@ -94,29 +94,38 @@ def path_to_image_surface(path, **kwargs):
         return fn(fimg.read(), **kwargs)
 
 
-_MatchPath = namedtuple('_MatchPath', 'directory name suffix')
-def get_matching_files(dirpath, *names):
+def get_matching_files(dirpath, names, explicit_filetype=False):
     """Search dirpath recursively for files matching the names
 
     Return a dict with keys equal to entries in names
     and values a list of matching paths.
     """
-    def _icons_iter(dirpath, *names):
-        pat_str = '(?P<name>' + '|'.join(map(re.escape, names)) +')\\.(?P<suffix>\w+)$'
-        pat = re.compile(pat_str)
+    def match_files_in_dir(dirpath, regex_pattern):
         for dpath, dnames, fnames in os.walk(dirpath):
-            matches = (pat.match(x) for x in fnames)
-            matches = (x for x in matches if x)
-            for match in matches:
+            matches = (regex_pattern.match(x) for x in fnames)
+            for match in (x for x in matches if x):
                 d = match.groupdict()
-                yield _MatchPath(dpath, d['name'], d['suffix'])
+                d['directory'] = dpath
+                yield d
 
-    d = defaultdict(list)
-    icons = _icons_iter(dirpath, *names)
-    for directory, name, suffix in icons:
-        d[name].append(os.path.join(directory, name+'.'+suffix))
-    return d
+    names = tuple(names)
+    pat_str = '(?P<name>' + '|'.join(map(re.escape, names)) +')'
+    if explicit_filetype:
+        pat_str += '$'
+    else:
+        pat_str += '\\.(?P<suffix>\w+)$'
+    regex_pattern = re.compile(pat_str, flags=re.IGNORECASE)
 
+    d_total = defaultdict(list)
+    for d_match in match_files_in_dir(dirpath, regex_pattern):
+        name, directory  = d_match['name'], d_match['directory']
+        try:
+            suffix = d_match['suffix']
+            filename = '.'.join((name, suffix))
+        except KeyError:
+            filename = name
+        d_total[name].append(os.path.join(directory, filename))
+    return d_total
 
 LoadedImg = namedtuple('LoadedImg', 'success name path surface pattern')
 class Loader(object):
@@ -128,7 +137,7 @@ class Loader(object):
 
     load icons using Loader.icons(). e.g.,
     >>> ldr = Loader(['/usr/share/icons/Adwaita/24x24', '/usr/share/icons/Adwaita'])
-    >>> loaded_images = ldr.icons('audio-volume-muted', 'audio-volume-low')
+    >>> loaded_images = ldr.icons(['audio-volume-muted', 'audio-volume-low'])
     """
     def __init__(self, icon_dirs=(), width=None, height=None):
         """Create an instance of Loader
@@ -149,39 +158,80 @@ class Loader(object):
         self.width = width
         self.height = height
 
-    def __call__(self, path, name=None):
+    def __call__(self, image_path, width=None, height=None, name=None):
+        width = width if width is not None else self.width
+        height = height if height is not None else self.height
+
         total = []
-        if not path:
+        if not image_path:
             logger.warning("Can't load image with no given path, name=%r", name)
-            return LoadedImg(False, name, path, None, None)
+            return LoadedImg(False, name, image_path, None, None)
 
         if name is None:
-            name = os.path.basename(path)
+            name = os.path.basename(image_path)
             name = re.split('\\.\w+$', name, maxsplit=1)[0]
 
         try:
             success, surface = True, path_to_image_surface(
-                path,
-                width=self.width,
-                height=self.height,
+                image_path,
+                width=width,
+                height=height,
             )
         except BackendError:
-            logger.warning("Can't load image with current backends, path=%r, name=%r", path, name)
+            logger.warning("Can't load image with current backends, path=%r, name=%r", image_path, name)
             success, surface = False, None
         except (OSError, IOError):
-            logger.warning("Couldn't open image at path=%r, name=%r", path, name)
+            logger.warning("Couldn't open image at path=%r, name=%r", image_path, name)
             success, surface = False, None
-        if surface is None:
-            pattern = None
-        else:
-            pattern = cairocffi.SurfacePattern(surface)
-            pattern.set_filter(cairocffi.FILTER_BEST)
-        return LoadedImg(success, name, path, surface, pattern)
+        pattern = self._get_pattern(surface, width, height)
+        return LoadedImg(success, name, image_path, surface, pattern)
 
-    def icons(self, *names):
-        mfiles = get_matching_files(self.icon_dirs[0], *names)
+    @staticmethod
+    def _get_pattern(surface, width, height):
+        """Return a SurfacePattern from an ImageSurface.
+
+        if width and height are not None scale the pattern
+        to be size width and height.
+        """
+        if surface is None:
+            return None
+        pattern = cairocffi.SurfacePattern(surface)
+        pattern.set_filter(cairocffi.FILTER_BEST)
+
+        def scale(original, new):
+            return float(original) / float(new)
+
+        tr_width, tr_height = None, None
+        if (width is not None) and (width != surface.get_width()):
+            tr_width = scale(surface.get_width(), width)
+        if (height is not None) and (height != surface.get_height()):
+            tr_height = scale(surface.get_height(), height)
+        if (tr_width is not None) or (tr_height is not None):
+            tr_width = tr_width if tr_width is not None else 1.0
+            tr_height = tr_height if tr_height is not None else 1.0
+            matrix = cairocffi.Matrix()
+            matrix.scale(tr_width, tr_height)
+            pattern.set_matrix(matrix)
+        return pattern
+
+    def paths(self, image_paths, width=None, height=None):
+        """paths() loads all of the images given in image_paths
+
+        image_paths is an iterable of paths to image files
+        paths() returns a list of loaded images: [LoadedImg(...), ...]
+        """
+        return [self(x, width=width, height=height) for x in image_paths]
+
+    def icons(self, icon_names, width=None, height=None):
+        """icons() loads all of the images given in icon_names
+
+        icon_names is an iterable of icon names
+        icons() returns a list of loaded images: [LoadedImg(...), ...]
+        """
+        names = tuple(icon_names)
+        mfiles = get_matching_files(self.icon_dirs[0], names, explicit_filetype=False)
         for dpath in self.icon_dirs[1:]:
-            mfiles2 = get_matching_files(dpath, *names)
+            mfiles2 = get_matching_files(dpath, names, explicit_filetype=False)
             for k,v in mfiles2.items():
                 mfiles[k].extend(v)
         total = []
@@ -190,7 +240,7 @@ class Loader(object):
                 path = next(self._filter_paths(mfiles[name]))
             except StopIteration:
                 path = None
-            total.append(self(path, name=name))
+            total.append(self(path, width=width, height=height, name=name))
         return total
 
     def _filter_paths(self, paths):
