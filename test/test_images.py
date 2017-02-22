@@ -71,7 +71,14 @@ def test_loader_file_not_exist():
     ldr = images.Loader()
     name = 'somefile'
     path = '/a/b/{}.png'.format(name)
-    loaded_img_eql(ldr(path), path=path, success=False, surface=None, name=name)
+    loaded_img_eql(
+        ldr(path),
+        path=path,
+        success=False,
+        surface=None,
+        name=name,
+        pattern=None,
+    )
 
 def test_loader_png():
     ldr = images.Loader()
@@ -80,6 +87,8 @@ def test_loader_png():
     loaded_img_eql(loaded_img, path=path, success=True, name='battery-caution-charging')
     surf = loaded_img.surface
     assert isinstance(surf, cairocffi.ImageSurface)
+    pattern = loaded_img.pattern
+    assert isinstance(pattern, cairocffi.SurfacePattern)
 
 
 def test_loader_icon_png_exist():
