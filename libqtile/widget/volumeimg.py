@@ -31,12 +31,43 @@ icons['audio-volume-low'] = lambda aud_stat: True if aud_stat.volume <= 0.3 else
 icons['audio-volume-medium'] = lambda aud_stat: True if aud_stat.volume < 0.8 else False
 icons['audio-volume-high'] = lambda aud_stat: True
 
-class Volume3(statusupdated.StatUpImage):
+class VolumeImg(statusupdated.StatUpImage):
+    """VolumeImg a graphical volume status widget
+    It displays the volume status based on icons located in the directories
+    defined in the given image loader (libqtile.images.Loader).
+
+    Widget creation example:
+    >>> loader = libqtile.images.Loader(
+            [
+                '/usr/share/icons/Numix/32',
+                '/usr/share/icons/Numix/24',
+                '/usr/share/icons/Numix/22',
+                '/usr/share/icons/Adwaita/32x32',
+                '/usr/share/icons/Adwaita',
+            ],
+            width=32,
+            height=32,
+        )
+    >>> vol = widget.VolumeImg(loader)
+    >>> vol.status_poll_timeout = 6.7 # update timeout
+
+
+    Updating widget ahead of schedule by user:
+    >>> @libqtile.command.lazy.function
+        def vol_toggle_mute(qtile):
+            cmd = 'amixer sset Master toggle'
+            qtile.cmd_spawn(cmd)
+            qtile.call_later(
+                0.1, qtile.cmd_update_status,
+                'volumeimg', '', 'status_call_poller',
+            )
+
+    """
     def __init__(self, img_loader, *pargs, **kwargs):
         self.loaded_images = img_loader.icons(*icons)
         if any((not x.success for x in self.loaded_images)):
             raise ValueError('Problem loading one of the volume images')
-        super(Volume3, self).__init__(*pargs, **kwargs)
+        super(VolumeImg, self).__init__(*pargs, **kwargs)
 
     def status_poller(self):
         audio_status = get_vol()
