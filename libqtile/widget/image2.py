@@ -1,8 +1,4 @@
 from __future__ import division
-
-import os
-import cairocffi
-
 from . import base
 from .. import bar
 from .. import images
