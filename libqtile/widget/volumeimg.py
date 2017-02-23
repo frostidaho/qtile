@@ -64,7 +64,7 @@ class VolumeImg(statusupdated.StatUpImage):
 
     """
     def __init__(self, img_loader, *pargs, **kwargs):
-        self.loaded_images = img_loader.icons(*icons)
+        self.loaded_images = img_loader.icons(icons)
         if any((not x.success for x in self.loaded_images)):
             raise ValueError('Problem loading one of the volume images')
         super(VolumeImg, self).__init__(*pargs, **kwargs)
