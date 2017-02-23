@@ -24,6 +24,10 @@ from . import confreader
 from . import drawer
 from . import configurable
 from . import window
+from . import log_utils
+
+
+logger = log_utils.logger
 
 
 class Gap(command.CommandObject):
@@ -160,7 +164,7 @@ class Bar(Gap, configurable.Configurable):
         Gap.__init__(self, size)
         configurable.Configurable.__init__(self, **config)
         self.add_defaults(Bar.defaults)
-        self.widgets = widgets
+        self.widgets = list(widgets)
         self.saved_focus = None
 
         self.queued_draws = 0
@@ -200,9 +204,14 @@ class Bar(Gap, configurable.Configurable):
         qtile.windowMap[self.window.window.wid] = self.window
         self.window.unhide()
 
-        for i in self.widgets:
-            qtile.registerWidget(i)
-            i._configure(qtile, self)
+        for widget in tuple(self.widgets):
+            try:
+                widget._configure(qtile, self)
+                qtile.registerWidget(widget)
+            except Exception:
+                logger.exception("Can't configure widget %r", widget)
+                self.widgets.remove(widget)
+            
         self._resize(self.length, self.widgets)
 
     def finalize(self):
