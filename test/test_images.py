@@ -131,9 +131,11 @@ def test_loader_png():
     ldr = images.Loader()
     path = os.path.join(DATA_DIR, 'png', 'battery-caution-charging.png')
     loaded_img = ldr(path)
-    loaded_img_eql(loaded_img, path=path, success=True, name='battery-caution-charging')
+    loaded_img_eql(loaded_img, path=path, success=True,
+                   name='battery-caution-charging', width=24, height=24)
     surf = loaded_img.surface
     assert isinstance(surf, cairocffi.ImageSurface)
+    assert surf.get_width() == 24
     pattern = loaded_img.pattern
     assert isinstance(pattern, cairocffi.SurfacePattern)
 
@@ -178,3 +180,64 @@ def test_loader_icon_png_fail():
             name=name,
             success=successful[i],
         )
+
+
+def test_loader_png_resize():
+    ldr = images.Loader()
+    path = os.path.join(DATA_DIR, 'png', 'battery-caution-charging.png')
+    loaded_img = ldr(path, width=48)
+    loaded_img_eql(loaded_img, path=path, success=True,
+                   name='battery-caution-charging', width=48, height=24)
+    surf = loaded_img.surface
+    assert isinstance(surf, cairocffi.ImageSurface)
+    # The scaling of the image is only done on the SurfacePattern,
+    # not on the ImageSurface. So the ImageSurface will still have the original
+    # dimensions
+    assert surf.get_width() == 24
+    pattern = loaded_img.pattern
+    assert isinstance(pattern, cairocffi.SurfacePattern)
+
+def test_loader_png_resize2():
+    ldr = images.Loader()
+    path = os.path.join(DATA_DIR, 'png', 'battery-caution-charging.png')
+    loaded_img = ldr(path, width=72, height=100)
+    loaded_img_eql(loaded_img, path=path, success=True,
+                   name='battery-caution-charging', width=72, height=100)
+    surf = loaded_img.surface
+    assert isinstance(surf, cairocffi.ImageSurface)
+    # The scaling of the image is only done on the SurfacePattern,
+    # not on the ImageSurface. So the ImageSurface will still have the original
+    # dimensions
+    assert surf.get_width() == 24
+    pattern = loaded_img.pattern
+    assert isinstance(pattern, cairocffi.SurfacePattern)
+
+def test_loader_svg():
+    ldr = images.Loader(icon_dirs=[os.path.join(DATA_DIR, 'svg'),])
+    icon_name = 'audio-volume-muted'
+    loaded_img = ldr.icons([icon_name,])[0]
+    if loaded_img.success:      # can't run this section if we don't have svg backend
+        loaded_img_eql(loaded_img, name=icon_name, width=24, height=24)
+        surf = loaded_img.surface
+        assert isinstance(surf, cairocffi.ImageSurface)
+        assert surf.get_width() == 24
+        pattern = loaded_img.pattern
+        assert isinstance(pattern, cairocffi.SurfacePattern)
+
+def test_loader_svg_resize():
+    width, height = 96, 172
+    ldr = images.Loader(icon_dirs=[os.path.join(DATA_DIR, 'svg'),], width=width)
+    icon_name = 'audio-volume-muted'
+    loaded_img = ldr.icons([icon_name,], height=height)[0]
+    if loaded_img.success:      # can't run this section if we don't have svg backend
+        loaded_img_eql(loaded_img, name=icon_name, width=width, height=height)
+        surf = loaded_img.surface
+        assert isinstance(surf, cairocffi.ImageSurface)
+        # For SVGs the scaling is done before creating the ImageSurface,
+        # not on the SurfacePattern
+        assert surf.get_width() == width
+        assert surf.get_height() == height
+        assert isinstance(loaded_img.pattern, cairocffi.SurfacePattern)
+
+
+

@@ -25,11 +25,11 @@ class Image2(base._Widget, base.MarginMixin):
 
     def _configure(self, qtile, bar):
         base._Widget._configure(self, qtile, bar)
-
         if self.loaded_image is None:
-            raise ValueError('No loaded_image given!')
-        elif not self.loaded_image.success:
-            raise ValueError('Image was not successfully loaded {!r}'.format(self.loaded_image))
+            raise ValueError('No loaded_image given to Image2() widget.')
+        if not self.loaded_image.success:
+            msg = 'Image was not successfully loaded {!r}'
+            raise ValueError(msg.format(self.loaded_image))
 
     @property
     def image(self):
@@ -41,11 +41,11 @@ class Image2(base._Widget, base.MarginMixin):
 
     @property
     def image_width(self):
-        return self.image.get_width()
+        return self.loaded_image.width
 
     @property
     def image_height(self):
-        return self.image.get_height()
+        return self.loaded_image.height
 
     def draw(self):
         self.drawer.clear(self.bar.background)
