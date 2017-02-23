@@ -127,7 +127,7 @@ def get_matching_files(dirpath, names, explicit_filetype=False):
         d_total[name].append(os.path.join(directory, filename))
     return d_total
 
-LoadedImg = namedtuple('LoadedImg', 'success name path surface pattern')
+LoadedImg = namedtuple('LoadedImg', 'success name path surface pattern width height')
 class Loader(object):
     """Loader - create cairo surfaces from image files & icons
 
@@ -165,7 +165,16 @@ class Loader(object):
         total = []
         if not image_path:
             logger.warning("Can't load image with no given path, name=%r", name)
-            return LoadedImg(False, name, image_path, None, None)
+            return LoadedImg(
+                success=False,
+                name=name,
+                path=image_path,
+                surface=None,
+                pattern=None,
+                width=None,
+                height=None,
+            )
+            # return LoadedImg(False, name, image_path, None, None, None, None)
 
         if name is None:
             name = os.path.basename(image_path)
@@ -184,7 +193,26 @@ class Loader(object):
             logger.warning("Couldn't open image at path=%r, name=%r", image_path, name)
             success, surface = False, None
         pattern = self._get_pattern(surface, width, height)
-        return LoadedImg(success, name, image_path, surface, pattern)
+        width, height = self._get_new_width_height(surface, width, height)
+        return LoadedImg(
+            success=success,
+            name=name,
+            path=image_path,
+            surface=surface,
+            pattern=pattern,
+            width=width,
+            height=height,
+        )
+
+    @staticmethod
+    def _get_new_width_height(surface, width, height):
+        if surface is None:
+            return (None, None)
+        if width is None:
+            width = surface.get_width()
+        if height is None:
+            height = surface.get_height()
+        return (width, height)
 
     @staticmethod
     def _get_pattern(surface, width, height):
