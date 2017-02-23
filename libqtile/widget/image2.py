@@ -29,7 +29,7 @@ class Image2(base._Widget, base.MarginMixin):
         if self.loaded_image is None:
             raise ValueError('No loaded_image given!')
         elif not self.loaded_image.success:
-            raise ValueError('Image was not successfully loaded {!r}'.format(limg))
+            raise ValueError('Image was not successfully loaded {!r}'.format(self.loaded_image))
 
     @property
     def image(self):
