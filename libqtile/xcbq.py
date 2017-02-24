@@ -899,7 +899,7 @@ class Connection(object):
         return self.code_to_syms[keycode][modifier]
 
     @staticmethod
-    def _get_visual(screen, desired_depth=32):
+    def _get_visual(screen, desired_depth=24):
         """_get_visual() returns the visual id of the screen @ some depth
 
         Returns an int (xcb_visualid_t) corresponding to the screen's visualid
@@ -933,30 +933,21 @@ class Connection(object):
         )
         return cmap_id
 
-    def create_window(self, x, y, width, height):
-        wid = self.conn.generate_id()
-
+    def _get_depth_and_visual(self, desired_depth=32):
         screen = self.default_screen
-        depth = 32
-        visual_id = self._get_visual(screen, depth)
+        visual_id = self._get_visual(screen, desired_depth)
         if visual_id is None:
             depth = screen.root_depth
             visual_id = screen.root_visual
-            self.conn.core.CreateWindow(
-                depth,
-                wid,
-                screen.root.wid,
-                x, y, width, height, 0,
-                WindowClass.InputOutput,
-                visual_id,
-                CW.BackPixel | CW.EventMask,
-                [
-                    self.default_screen.black_pixel,
-                    EventMask.StructureNotify | EventMask.Exposure
-                ],
-            )
-
         else:
+            depth = desired_depth
+        return depth, visual_id
+
+    def create_window(self, x, y, width, height, depth=None):
+        wid = self.conn.generate_id()
+        screen = self.default_screen
+        depth, visual_id = self._get_depth_and_visual(depth if depth is not None else screen.root_depth)
+        if depth == 32:
             self.conn.core.CreateWindow(
                 depth,
                 wid,
@@ -971,25 +962,20 @@ class Connection(object):
                     self._get_colormap(visual_id, screen.root.wid)
                 ],
             )
-
-            pass
-
-        # except:
-        #     self.conn.core.CreateWindow(
-        #         screen.root_depth,
-        #         wid,
-        #         screen.root.wid,
-        #         x, y, width, height, 0,
-        #         WindowClass.InputOutput,
-        #         screen.root_visual,
-        #         CW.BackPixel | CW.EventMask,
-        #         [
-        #             self.default_screen.black_pixel,
-        #             EventMask.StructureNotify | EventMask.Exposure
-        #         ],
-        #     )
-
-
+        else:
+            self.conn.core.CreateWindow(
+                depth,
+                wid,
+                screen.root.wid,
+                x, y, width, height, 0,
+                WindowClass.InputOutput,
+                visual_id,
+                CW.BackPixel | CW.EventMask,
+                [
+                    self.default_screen.black_pixel,
+                    EventMask.StructureNotify | EventMask.Exposure
+                ],
+            )
         return Window(self, wid)
 
     def disconnect(self):

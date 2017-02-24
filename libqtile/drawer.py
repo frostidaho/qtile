@@ -220,9 +220,9 @@ class Drawer(object):
         self.pixmap = self.qtile.conn.conn.generate_id()
         self.gc = self.qtile.conn.conn.generate_id()
 
+        actual_depth, actual_visual_id = self.qtile.conn._get_depth_and_visual()
         self.qtile.conn.conn.core.CreatePixmap(
-            32,
-            # self.qtile.conn.default_screen.root_depth,
+            actual_depth,
             self.pixmap,
             self.wid,
             self.width,
@@ -317,10 +317,10 @@ class Drawer(object):
         )
 
     def find_root_visual(self):
+        actual_depth, actual_visual_id = self.qtile.conn._get_depth_and_visual()
         for i in self.qtile.conn.default_screen.allowed_depths:
             for v in i.visuals:
-                # if v.visual_id == self.qtile.conn.default_screen.root_visual:
-                if i.depth == 32:
+                if v.visual_id == actual_visual_id:
                     return v
 
     def new_ctx(self):
