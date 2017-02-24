@@ -956,6 +956,7 @@ class Connection(object):
         screen = self.default_screen
         # depth, visual_id = self._get_depth_and_visual(32)
         depth, visual_id = self._get_depth_and_visual()
+        self._depth_and_visual = depth, visual_id
         def normal_window():
             self.conn.core.CreateWindow(
                 screen.root_depth,
@@ -994,6 +995,7 @@ class Connection(object):
                 ).check()
             except xcffib.xproto.MatchError:
                 logger.exception("Can't make 32bit window!")
+                self._depth_and_visual = screen.root_depth, screen.root_visual
                 normal_window()
         return Window(self, wid)
 
