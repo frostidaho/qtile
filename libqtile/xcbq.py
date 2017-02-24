@@ -973,10 +973,12 @@ class Connection(object):
             ).check()
 
         if depth == 32:
+            cmap_id = self._get_colormap(visual_id, screen.root.wid)
+            background = self.conn.core.AllocColor(cmap_id, 0x2828, 0x8383, 0xCECE).reply().pixel  # Color "#2883ce"
             values = [
-                self.default_screen.black_pixel,
+                background,
                 EventMask.StructureNotify | EventMask.Exposure,
-                self._get_colormap(visual_id, screen.root.wid)
+                cmap_id,
             ]
             try:
                 self.conn.core.CreateWindow(
