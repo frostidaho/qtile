@@ -319,7 +319,8 @@ class Drawer(object):
     def find_root_visual(self):
         for i in self.qtile.conn.default_screen.allowed_depths:
             for v in i.visuals:
-                if v.visual_id == self.qtile.conn.default_screen.root_visual:
+                # if v.visual_id == self.qtile.conn.default_screen.root_visual:
+                if i.depth == 32:
                     return v
 
     def new_ctx(self):
