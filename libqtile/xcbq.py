@@ -928,17 +928,19 @@ class Connection(object):
     def _get_colormap(self, visual_id, root_wid):
         cmap_id = self.conn.generate_id()
         self.conn.core.CreateColormap(
-            # xcffib.xproto.ColormapAlloc._None,
-            xcffib.xproto.ColormapAlloc.All,
+            xcffib.xproto.ColormapAlloc._None,
+            # xcffib.xproto.ColormapAlloc.All,
             cmap_id,
             root_wid,
             visual_id,
             is_checked=True,
         ).check()
         # self.conn.flush()
+        # cmap_obj = Colormap(self.conn, cmap_id)
+        # self.default_screen.color_map = cmap_obj
         return cmap_id
 
-    def _get_depth_and_visual(self, desired_depth=24):
+    def _get_depth_and_visual(self, desired_depth=32):
         screen = self.default_screen
         visual_id = self._get_visual(screen, desired_depth)
         if visual_id is None:
@@ -952,7 +954,7 @@ class Connection(object):
     def create_window(self, x, y, width, height):
         wid = self.conn.generate_id()
         screen = self.default_screen
-        depth, visual_id = self._get_depth_and_visual(32)
+        # depth, visual_id = self._get_depth_and_visual(32)
         depth, visual_id = self._get_depth_and_visual()
         if depth == 32:
             self.conn.core.CreateWindow(
