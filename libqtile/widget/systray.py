@@ -63,10 +63,15 @@ class Icon(window._Window):
 
     def __init__(self, win, qtile, systray):
         window._Window.__init__(self, win, qtile)
-        window.set_attribute(
+        depth, visual_id = self.qtile.conn._depth_and_visual
+        # self.conn.screens[0].root
+        screen = self.qtile.conn.default_screen
+        root_wid = screen.root.wid
+        self.window.set_attribute(
             backpixel=0,
             borderpixel=0,
             eventmask=self._windowMask,
+            colormap=self.qtile.conn._get_colormap(visual_id, root_wid),
         )
         self.systray = systray
         self.update_size()
