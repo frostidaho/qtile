@@ -658,7 +658,8 @@ class Internal(_Window):
 
     @classmethod
     def create(cls, qtile, x, y, width, height, opacity=1.0):
-        win = qtile.conn.create_window(x, y, width, height)
+        # 32 bit depth for ARGB support
+        win = qtile.conn.create_window(x, y, width, height, depth=32)
         win.set_property("QTILE_INTERNAL", 1)
         i = Internal(win, qtile)
         i.place(x, y, width, height, 0, None)
