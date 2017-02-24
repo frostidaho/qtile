@@ -934,7 +934,7 @@ class Connection(object):
         self.conn.flush()
         return cmap_id
 
-    def _get_depth_and_visual(self, desired_depth=32):
+    def _get_depth_and_visual(self, desired_depth=24):
         screen = self.default_screen
         visual_id = self._get_visual(screen, desired_depth)
         if visual_id is None:
@@ -948,6 +948,7 @@ class Connection(object):
     def create_window(self, x, y, width, height):
         wid = self.conn.generate_id()
         screen = self.default_screen
+        depth, visual_id = self._get_depth_and_visual(32)
         depth, visual_id = self._get_depth_and_visual()
         if depth == 32:
             self.conn.core.CreateWindow(
