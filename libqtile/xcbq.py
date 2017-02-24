@@ -923,26 +923,45 @@ class Connection(object):
                     return v.visual_id
         return None
 
-    def create_window(self, x, y, width, height, depth=None):
+    def create_window(self, x, y, width, height):
         screen = self.default_screen
-        if depth is None:
-            depth, visual_id = screen.root_depth, screen.root_visual
-        else:
-            visual_id = self._get_visual(screen, depth)
+        depth = 32
+        visual_id = self._get_visual(screen, depth)
+        if visual_id is None:
+            depth = screen.root_depth
+            visual_id = screen.root_visual
         wid = self.conn.generate_id()
-        self.conn.core.CreateWindow(
-            depth,
-            wid,
-            self.default_screen.root.wid,
-            x, y, width, height, 0,
-            WindowClass.InputOutput,
-            visual_id,
-            CW.BackPixel | CW.EventMask,
-            [
-                self.default_screen.black_pixel,
-                EventMask.StructureNotify | EventMask.Exposure
-            ]
-        )
+        try:
+            self.conn.core.CreateWindow(
+                depth,
+                wid,
+                self.default_screen.root.wid,
+                x, y, width, height, 0,
+                WindowClass.InputOutput,
+                visual_id,
+                CW.BackPixel | CW.EventMask,
+                [
+                    self.default_screen.black_pixel,
+                    EventMask.StructureNotify | EventMask.Exposure
+                ],
+                is_checked=True,
+            ).check()
+        except:
+            self.conn.core.CreateWindow(
+                screen.root_depth,
+                wid,
+                screen.root.wid,
+                x, y, width, height, 0,
+                WindowClass.InputOutput,
+                screen.root_visual,
+                CW.BackPixel | CW.EventMask,
+                [
+                    self.default_screen.black_pixel,
+                    EventMask.StructureNotify | EventMask.Exposure
+                ],
+            )
+
+
         return Window(self, wid)
 
     def disconnect(self):
