@@ -221,7 +221,8 @@ class Drawer(object):
         self.gc = self.qtile.conn.conn.generate_id()
 
         self.qtile.conn.conn.core.CreatePixmap(
-            self.qtile.conn.default_screen.root_depth,
+            32,
+            # self.qtile.conn.default_screen.root_depth,
             self.pixmap,
             self.wid,
             self.width,

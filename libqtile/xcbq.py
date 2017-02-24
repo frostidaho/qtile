@@ -923,19 +923,29 @@ class Connection(object):
                     return v.visual_id
         return None
 
+    def _get_colormap(self, visual_id, root_wid):
+        cmap_id = self.conn.generate_id()
+        self.conn.core.CreateColormap(
+            xcffib.xproto.ColormapAlloc._None,
+            cmap_id,
+            root_wid,
+            visual_id,
+        )
+        return cmap_id
+
     def create_window(self, x, y, width, height):
+        wid = self.conn.generate_id()
+
         screen = self.default_screen
         depth = 32
         visual_id = self._get_visual(screen, depth)
         if visual_id is None:
             depth = screen.root_depth
             visual_id = screen.root_visual
-        wid = self.conn.generate_id()
-        try:
             self.conn.core.CreateWindow(
                 depth,
                 wid,
-                self.default_screen.root.wid,
+                screen.root.wid,
                 x, y, width, height, 0,
                 WindowClass.InputOutput,
                 visual_id,
@@ -944,22 +954,40 @@ class Connection(object):
                     self.default_screen.black_pixel,
                     EventMask.StructureNotify | EventMask.Exposure
                 ],
-                is_checked=True,
-            ).check()
-        except:
+            )
+
+        else:
             self.conn.core.CreateWindow(
-                screen.root_depth,
+                depth,
                 wid,
                 screen.root.wid,
                 x, y, width, height, 0,
                 WindowClass.InputOutput,
-                screen.root_visual,
-                CW.BackPixel | CW.EventMask,
+                visual_id,
+                CW.BackPixel | CW.EventMask | CW.Colormap,
                 [
                     self.default_screen.black_pixel,
-                    EventMask.StructureNotify | EventMask.Exposure
+                    EventMask.StructureNotify | EventMask.Exposure,
+                    self._get_colormap(visual_id, screen.root.wid)
                 ],
             )
+
+            pass
+
+        # except:
+        #     self.conn.core.CreateWindow(
+        #         screen.root_depth,
+        #         wid,
+        #         screen.root.wid,
+        #         x, y, width, height, 0,
+        #         WindowClass.InputOutput,
+        #         screen.root_visual,
+        #         CW.BackPixel | CW.EventMask,
+        #         [
+        #             self.default_screen.black_pixel,
+        #             EventMask.StructureNotify | EventMask.Exposure
+        #         ],
+        #     )
 
 
         return Window(self, wid)
