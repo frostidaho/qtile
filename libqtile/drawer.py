@@ -346,6 +346,10 @@ class Drawer(object):
             self.ctx.set_source_rgba(*utils.rgb(colour))
 
     def clear(self, colour):
+        self.ctx.set_operator(cairocffi.OPERATOR_CLEAR)
+        self.ctx.paint()
+        self.ctx.set_operator(cairocffi.OPERATOR_OVER)
+        # logger.warning('drawer clear color: {}'.format(color))
         self.set_source_rgb(colour)
         self.ctx.rectangle(0, 0, self.width, self.height)
         self.ctx.fill()
