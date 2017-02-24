@@ -956,26 +956,7 @@ class Connection(object):
         screen = self.default_screen
         # depth, visual_id = self._get_depth_and_visual(32)
         depth, visual_id = self._get_depth_and_visual()
-        try:
-            if depth == 32:
-                values = [
-                    self.default_screen.black_pixel,
-                    EventMask.StructureNotify | EventMask.Exposure,
-                    self._get_colormap(visual_id, screen.root.wid)
-                ]
-                self.conn.core.CreateWindow(
-                    depth,
-                    wid,
-                    screen.root.wid,
-                    x, y, width, height, 0,
-                    WindowClass.InputOutput,
-                    visual_id,
-                    CW.BackPixel | CW.EventMask | CW.Colormap,
-                    values,
-                    is_checked=True,
-                ).check()
-        except xcffib.xproto.MatchError:
-            logger.exception("Can't make 32bit window!")
+        def normal_window():
             self.conn.core.CreateWindow(
                 screen.root_depth,
                 wid,
@@ -988,7 +969,30 @@ class Connection(object):
                     self.default_screen.black_pixel,
                     EventMask.StructureNotify | EventMask.Exposure
                 ],
-            )
+                is_checked=True,
+            ).check()
+
+        if depth == 32:
+            values = [
+                self.default_screen.black_pixel,
+                EventMask.StructureNotify | EventMask.Exposure,
+                self._get_colormap(visual_id, screen.root.wid)
+            ]
+            try:
+                self.conn.core.CreateWindow(
+                    depth,
+                    wid,
+                    screen.root.wid,
+                    x, y, width, height, 0,
+                    WindowClass.InputOutput,
+                    visual_id,
+                    CW.BackPixel | CW.EventMask | CW.Colormap,
+                    values,
+                    is_checked=True,
+                ).check()
+            except xcffib.xproto.MatchError:
+                logger.exception("Can't make 32bit window!")
+                normal_window()
         return Window(self, wid)
 
     def disconnect(self):
