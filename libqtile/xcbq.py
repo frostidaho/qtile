@@ -974,10 +974,12 @@ class Connection(object):
             ).check()
 
         if depth == 32:
+            # http://stackoverflow.com/a/3646456
             cmap_id = self._get_colormap(visual_id, screen.root.wid)
             background = self.conn.core.AllocColor(cmap_id, 0x2828, 0x8383, 0xCECE).reply().pixel  # Color "#2883ce"
             values = [
                 background,
+                0,
                 EventMask.StructureNotify | EventMask.Exposure,
                 cmap_id,
             ]
@@ -989,7 +991,7 @@ class Connection(object):
                     x, y, width, height, 0,
                     WindowClass.InputOutput,
                     visual_id,
-                    CW.BackPixel | CW.EventMask | CW.Colormap,
+                    CW.BackPixel | CW.BorderPixel | CW.EventMask | CW.Colormap,
                     values,
                     is_checked=True,
                 ).check()
