@@ -217,7 +217,7 @@ class Systray(window._Window, base._Widget):
                 self.bar.height // 2 - self.icon_size // 2,
                 icon.width, self.icon_size,
                 0,
-                0,
+                None,
             )
             if icon.hidden:
                 icon.unhide()
