@@ -515,6 +515,8 @@ class Qtile(command.CommandObject):
 
     @utils.lru_cache()
     def colorPixel(self, name):
+        # FIXME - this is a quick hack for colors with opacity 
+        name = name.rsplit('.', 1)[0]
         return self.conn.screens[0].default_colormap.alloc_color(name).pixel
 
     @property
