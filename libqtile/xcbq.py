@@ -941,6 +941,7 @@ class Connection(object):
             visual_id = screen.root_visual
         else:
             depth = desired_depth
+        logger.warning('Screen depth={} bits, visual_id={}'.format(depth, visual_id))
         return depth, visual_id
 
     def create_window(self, x, y, width, height):
