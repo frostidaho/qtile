@@ -943,10 +943,10 @@ class Connection(object):
             depth = desired_depth
         return depth, visual_id
 
-    def create_window(self, x, y, width, height, depth=None):
+    def create_window(self, x, y, width, height):
         wid = self.conn.generate_id()
         screen = self.default_screen
-        depth, visual_id = self._get_depth_and_visual(depth if depth is not None else screen.root_depth)
+        depth, visual_id = self._get_depth_and_visual()
         if depth == 32:
             self.conn.core.CreateWindow(
                 depth,
