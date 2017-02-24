@@ -931,6 +931,7 @@ class Connection(object):
             root_wid,
             visual_id,
         )
+        self.conn.flush()
         return cmap_id
 
     def _get_depth_and_visual(self, desired_depth=32):
