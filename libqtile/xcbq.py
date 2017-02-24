@@ -899,7 +899,7 @@ class Connection(object):
         return self.code_to_syms[keycode][modifier]
 
     @staticmethod
-    def _get_visual(screen, desired_depth=24):
+    def _get_visual(screen, desired_depth=32):
         """_get_visual() returns the visual id of the screen @ some depth
 
         Returns an int (xcb_visualid_t) corresponding to the screen's visualid
@@ -917,7 +917,9 @@ class Connection(object):
         On my computer the default depth is only 24bit (screen.root_depth),
         even when running a compositor.
         """
-        for depth in tuple(screen.allowed_depths):
+        allowed_depths = tuple(screen.allowed_depths)
+        logger.warning('allowed screen depths are -> %r', [x.depth for x in allowed_depths])
+        for depth in allowed_depths:
             for v in depth.visuals:
                 if depth.depth == desired_depth:
                     return v.visual_id
@@ -926,12 +928,14 @@ class Connection(object):
     def _get_colormap(self, visual_id, root_wid):
         cmap_id = self.conn.generate_id()
         self.conn.core.CreateColormap(
-            xcffib.xproto.ColormapAlloc._None,
+            # xcffib.xproto.ColormapAlloc._None,
+            xcffib.xproto.ColormapAlloc.All,
             cmap_id,
             root_wid,
             visual_id,
-        )
-        self.conn.flush()
+            is_checked=True,
+        ).check()
+        # self.conn.flush()
         return cmap_id
 
     def _get_depth_and_visual(self, desired_depth=24):
