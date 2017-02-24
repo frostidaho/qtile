@@ -898,15 +898,45 @@ class Connection(object):
             return 0
         return self.code_to_syms[keycode][modifier]
 
-    def create_window(self, x, y, width, height):
+    @staticmethod
+    def _get_visual(screen, desired_depth=32):
+        """_get_visual() returns the visual id of the screen @ some depth
+
+        Returns an int (xcb_visualid_t) corresponding to the screen's visualid
+        On failure it returns None.
+
+        For an ARGB visual -> desired_depth=32
+        For a RGB visual   -> desired_depth=24
+
+        If you just want the screen's default visual
+        you can do the following:
+        >>> conn = xcffib.connect(display=os.getenv('DISPLAY', ':0'))
+        >>> screen = conn.get_setup().roots[conn.pref_screen]
+        >>> visual = screen.root_visual
+
+        On my computer the default depth is only 24bit (screen.root_depth),
+        even when running a compositor.
+        """
+        for depth in tuple(screen.allowed_depths):
+            for v in depth.visuals:
+                if depth.depth == desired_depth:
+                    return v.visual_id
+        return None
+
+    def create_window(self, x, y, width, height, depth=None):
+        screen = self.default_screen
+        if depth is None:
+            depth, visual_id = screen.root_depth, screen.root_visual
+        else:
+            visual_id = self._get_visual(screen, depth)
         wid = self.conn.generate_id()
         self.conn.core.CreateWindow(
-            self.default_screen.root_depth,
+            depth,
             wid,
             self.default_screen.root.wid,
             x, y, width, height, 0,
             WindowClass.InputOutput,
-            self.default_screen.root_visual,
+            visual_id,
             CW.BackPixel | CW.EventMask,
             [
                 self.default_screen.black_pixel,
