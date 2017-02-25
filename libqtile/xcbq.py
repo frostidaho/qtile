@@ -929,15 +929,11 @@ class Connection(object):
         cmap_id = self.conn.generate_id()
         self.conn.core.CreateColormap(
             xcffib.xproto.ColormapAlloc._None,
-            # xcffib.xproto.ColormapAlloc.All,
             cmap_id,
             root_wid,
             visual_id,
             is_checked=True,
         ).check()
-        # self.conn.flush()
-        # cmap_obj = Colormap(self.conn, cmap_id)
-        # self.default_screen.color_map = cmap_obj
         return cmap_id
 
     def _get_depth_and_visual(self, desired_depth=32):
