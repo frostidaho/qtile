@@ -925,7 +925,7 @@ class Connection(object):
                     return v.visual_id
         return None
 
-    def _get_colormap(self, visual_id, root_wid):
+    def _new_colormap(self, visual_id, root_wid):
         cmap_id = self.conn.generate_id()
         self.conn.core.CreateColormap(
             xcffib.xproto.ColormapAlloc._None,
@@ -971,7 +971,7 @@ class Connection(object):
 
         if depth == 32:
             # http://stackoverflow.com/a/3646456
-            cmap_id = self._get_colormap(visual_id, screen.root.wid)
+            cmap_id = self._new_colormap(visual_id, screen.root.wid)
             background = self.conn.core.AllocColor(cmap_id, 0x2828, 0x8383, 0xCECE).reply().pixel  # Color "#2883ce"
             values = [
                 background,

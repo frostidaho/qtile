@@ -71,7 +71,7 @@ class Icon(window._Window):
             backpixel=0,
             borderpixel=0,
             eventmask=self._windowMask,
-            colormap=self.qtile.conn._get_colormap(visual_id, root_wid),
+            colormap=self.qtile.conn._new_colormap(visual_id, root_wid),
         )
         self.systray = systray
         self.update_size()
