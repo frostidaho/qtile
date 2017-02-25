@@ -144,7 +144,7 @@ class Systray(window._Window, base._Widget):
     def _configure(self, qtile, bar):
         base._Widget._configure(self, qtile, bar)
         win = qtile.conn.create_window(-1, -1, 1, 1)
-        window._Window.__init__(self, xcbq.Window(qtile.conn, win.wid), qtile)
+        window._Window.__init__(self, win, qtile)
         qtile.windowMap[win.wid] = self
 
         # Even when we have multiple "Screen"s, we are setting up as the system
