@@ -38,23 +38,6 @@ from xcffib.xproto import (ClientMessageEvent, ClientMessageData, EventMask,
 
 XEMBED_PROTOCOL_VERSION = 0
 
-# [(1, 'backpixmap'),
-#  (2, 'backpixel'),
-#  (4, 'borderpixmap'),
-#  (8, 'borderpixel'),
-#  (16, 'bitgravity'),
-#  (32, 'wingravity'),
-#  (64, 'backingstore'),
-#  (128, 'backingplanes'),
-#  (256, 'backingpixel'),
-#  (512, 'overrideredirect'),
-#  (1024, 'saveunder'),
-#  (2048, 'eventmask'),
-#  (4096, 'dontpropagate'),
-#  (8192, 'colormap'),
-#  (16384, 'cursor')]
-# xcbq.Window.set_attribute
-
 
 class Icon(window._Window):
     _windowMask = EventMask.StructureNotify | \
@@ -63,16 +46,6 @@ class Icon(window._Window):
 
     def __init__(self, win, qtile, systray):
         window._Window.__init__(self, win, qtile)
-        depth, visual_id = self.qtile.conn._depth_and_visual
-        # self.conn.screens[0].root
-        screen = self.qtile.conn.default_screen
-        root_wid = screen.root.wid
-        self.window.set_attribute(
-            backpixel=0,
-            borderpixel=0,
-            eventmask=self._windowMask,
-            colormap=self.qtile.conn._new_colormap(visual_id, root_wid),
-        )
         self.systray = systray
         self.update_size()
 
@@ -144,7 +117,7 @@ class Systray(window._Window, base._Widget):
     def _configure(self, qtile, bar):
         base._Widget._configure(self, qtile, bar)
         win = qtile.conn.create_window(-1, -1, 1, 1)
-        window._Window.__init__(self, win, qtile)
+        window._Window.__init__(self, xcbq.Window(qtile.conn, win.wid), qtile)
         qtile.windowMap[win.wid] = self
 
         # Even when we have multiple "Screen"s, we are setting up as the system
@@ -211,13 +184,13 @@ class Systray(window._Window, base._Widget):
         self.drawer.clear(self.background or self.bar.background)
         self.drawer.draw(offsetx=self.offset, width=self.length)
         for pos, icon in enumerate(self.icons.values()):
-            icon.window.set_attribute(backpixmap=self.drawer.pixmap, borderpixel=0)
+            icon.window.set_attribute(backpixmap=self.drawer.pixmap)
             icon.place(
                 self.offset + xoffset,
                 self.bar.height // 2 - self.icon_size // 2,
                 icon.width, self.icon_size,
                 0,
-                None,
+                None
             )
             if icon.hidden:
                 icon.unhide()
