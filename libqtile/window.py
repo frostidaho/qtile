@@ -657,7 +657,7 @@ class Internal(_Window):
         EventMask.KeyPress
 
     @classmethod
-    def create(cls, qtile, x, y, width, height, opacity=1.0):
+    def create(cls, qtile, x, y, width, height, opacity=1.0, desired_depth=32):
         win = qtile.conn.create_window(x, y, width, height)
         win.set_property("QTILE_INTERNAL", 1)
         i = Internal(win, qtile)

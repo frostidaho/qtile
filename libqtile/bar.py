@@ -154,6 +154,7 @@ class Bar(Gap, configurable.Configurable):
     defaults = [
         ("background", "#000000", "Background colour."),
         ("opacity", 1, "Bar window opacity."),
+        ("depth", 32, "Bar window color depth."),
     ]
 
     def __init__(self, widgets, size, **config):
@@ -183,14 +184,16 @@ class Bar(Gap, configurable.Configurable):
         self.window = window.Internal.create(
             self.qtile,
             self.x, self.y, self.width, self.height,
-            self.opacity
+            opacity=self.opacity,
+            desired_depth=self.depth,
         )
 
         self.drawer = drawer.Drawer(
             self.qtile,
             self.window.window.wid,
             self.width,
-            self.height
+            self.height,
+            desired_depth=self.depth,
         )
         self.drawer.clear(self.background)
 
