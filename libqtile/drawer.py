@@ -213,17 +213,17 @@ class Drawer(object):
     starting at offset 0, 0, and when the time comes to display to the window,
     we copy the appropriate portion of the pixmap onto the window.
     """
-    def __init__(self, qtile, wid, width, height):
+    def __init__(self, qtile, wid, width, height, desired_depth=32):
         self.qtile = qtile
         self.wid, self.width, self.height = wid, width, height
 
         self.pixmap = self.qtile.conn.conn.generate_id()
         self.gc = self.qtile.conn.conn.generate_id()
 
-        # actual_depth, actual_visual_id = self.qtile.conn._get_depth_and_visual()
-        actual_depth, actual_visual_id = self.qtile.conn._depth_and_visual
+        self.desired_depth = desired_depth
+        scr_info = self.qtile.conn.default_screen.depth_to_visual[self.desired_depth]
         self.qtile.conn.conn.core.CreatePixmap(
-            actual_depth,
+            scr_info.depth,
             self.pixmap,
             self.wid,
             self.width,
@@ -318,8 +318,8 @@ class Drawer(object):
         )
 
     def find_root_visual(self):
-        # actual_depth, actual_visual_id = self.qtile.conn._get_depth_and_visual()
-        actual_depth, actual_visual_id = self.qtile.conn._depth_and_visual
+        scr_info = self.qtile.conn.default_screen.depth_to_visual[self.desired_depth]
+        actual_visual_id = scr_info.visual_id
         for i in self.qtile.conn.default_screen.allowed_depths:
             for v in i.visuals:
                 if v.visual_id == actual_visual_id:

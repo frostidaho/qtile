@@ -35,7 +35,8 @@
     complete - it only implements the subset of functionalty needed by qtile.
 """
 from __future__ import print_function, division
-
+from collections import (namedtuple as _namedtuple,
+                         OrderedDict as _OrderedDict,)
 import six
 
 from xcffib.xproto import CW, WindowClass, EventMask
@@ -46,12 +47,12 @@ import xcffib.randr
 import xcffib.xinerama
 import xcffib.xproto
 
+
 from . import xkeysyms
 from .log_utils import logger
 from .xcursors import Cursors
 
 keysyms = xkeysyms.keysyms
-
 
 def rdict(d):
     r = {}
@@ -294,7 +295,7 @@ class _Wrapper(object):
     def __getattr__(self, x):
         return getattr(self.wrapped, x)
 
-
+_DepthVisual = _namedtuple('_DepthVisual', 'depth visual_id')
 class Screen(_Wrapper):
     """
         This represents an actual X screen.
@@ -303,6 +304,46 @@ class Screen(_Wrapper):
         _Wrapper.__init__(self, screen)
         self.default_colormap = Colormap(conn, screen.default_colormap)
         self.root = Window(conn, self.root)
+        d2visual = _OrderedDict()
+        for depth in [32, self.root_depth]:
+            d, v = self._get_depth_and_visual(depth)
+            if d and v:
+                d2visual[depth] = _DepthVisual(d,v)
+        self.depth_to_visual = d2visual
+
+    def _get_depth_and_visual(self, depth):
+        visual_id = self._get_visual(self, depth)
+        logger.warning('Screen depth={} bits, visual_id={}'.format(depth, visual_id))
+        return _DepthVisual(depth, visual_id)
+
+    @staticmethod
+    def _get_visual(screen, desired_depth=32):
+        """_get_visual() returns the visual id of the screen @ some depth
+
+        Returns an int (xcb_visualid_t) corresponding to the screen's visualid
+        On failure it returns None.
+
+        For an ARGB visual -> desired_depth=32
+        For a RGB visual   -> desired_depth=24
+
+        If you just want the screen's default visual
+        you can do the following:
+        >>> conn = xcffib.connect(display=os.getenv('DISPLAY', ':0'))
+        >>> screen = conn.get_setup().roots[conn.pref_screen]
+        >>> visual = screen.root_visual
+
+        On my computer the default depth is only 24bit (screen.root_depth),
+        even when running a compositor.
+        """
+        allowed_depths = tuple(screen.allowed_depths)
+        logger.warning('allowed screen depths are -> %r', [x.depth for x in allowed_depths])
+        for depth in allowed_depths:
+            for v in depth.visuals:
+                if depth.depth == desired_depth:
+                    return v.visual_id
+        return None
+
+
 
 
 class PseudoScreen(object):
@@ -898,32 +939,6 @@ class Connection(object):
             return 0
         return self.code_to_syms[keycode][modifier]
 
-    @staticmethod
-    def _get_visual(screen, desired_depth=32):
-        """_get_visual() returns the visual id of the screen @ some depth
-
-        Returns an int (xcb_visualid_t) corresponding to the screen's visualid
-        On failure it returns None.
-
-        For an ARGB visual -> desired_depth=32
-        For a RGB visual   -> desired_depth=24
-
-        If you just want the screen's default visual
-        you can do the following:
-        >>> conn = xcffib.connect(display=os.getenv('DISPLAY', ':0'))
-        >>> screen = conn.get_setup().roots[conn.pref_screen]
-        >>> visual = screen.root_visual
-
-        On my computer the default depth is only 24bit (screen.root_depth),
-        even when running a compositor.
-        """
-        allowed_depths = tuple(screen.allowed_depths)
-        logger.warning('allowed screen depths are -> %r', [x.depth for x in allowed_depths])
-        for depth in allowed_depths:
-            for v in depth.visuals:
-                if depth.depth == desired_depth:
-                    return v.visual_id
-        return None
 
     def _new_colormap(self, visual_id, root_wid):
         cmap_id = self.conn.generate_id()
@@ -936,23 +951,16 @@ class Connection(object):
         ).check()
         return cmap_id
 
-    def _get_depth_and_visual(self, desired_depth=32):
-        screen = self.default_screen
-        visual_id = self._get_visual(screen, desired_depth)
-        if visual_id is None:
-            depth = screen.root_depth
-            visual_id = screen.root_visual
-        else:
-            depth = desired_depth
-        logger.warning('Screen depth={} bits, visual_id={}'.format(depth, visual_id))
-        return depth, visual_id
 
-    def create_window(self, x, y, width, height):
+    def create_window(self, x, y, width, height, desired_depth=32):
         wid = self.conn.generate_id()
         screen = self.default_screen
-        # depth, visual_id = self._get_depth_and_visual(32)
-        depth, visual_id = self._get_depth_and_visual()
-        self._depth_and_visual = depth, visual_id
+        try:
+            depth, visual_id = screen.depth_to_visual[desired_depth]
+        except KeyError:
+            logger.warning("Couldn't set depth to {} bit".format(desired_depth))
+            depth, visual_id = screen.depth_to_visual[screen.root_depth]
+
         def normal_window():
             self.conn.core.CreateWindow(
                 screen.root_depth,
@@ -993,7 +1001,6 @@ class Connection(object):
                 ).check()
             except xcffib.xproto.MatchError:
                 logger.exception("Can't make 32bit window!")
-                self._depth_and_visual = screen.root_depth, screen.root_visual
                 normal_window()
         return Window(self, wid)
 
