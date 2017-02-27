@@ -139,7 +139,7 @@ class Obj(object):
 STRETCH = Obj("STRETCH")
 CALCULATED = Obj("CALCULATED")
 STATIC = Obj("STATIC")
-_BarParts = _namedtuple('_BarParts', ('window', 'drawer', 'screen_depth'))
+_BarParts = _namedtuple('_BarParts', ('window', 'drawer', 'depth'))
 
 
 class Bar(Gap, _Configurable):
@@ -172,7 +172,7 @@ class Bar(Gap, _Configurable):
 
     def init_drawer(self, depth):
         try:
-            return self.windows[depth], self.drawers[depth]
+            return _BarParts(self.windows[depth], self.drawers[depth], depth)
         except KeyError:
             iwin = _Internal.create(
                 self.qtile,
