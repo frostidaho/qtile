@@ -969,9 +969,10 @@ class Connection(object):
                 x, y, width, height, 0,
                 WindowClass.InputOutput,
                 screen.root_visual,
-                CW.BackPixel | CW.EventMask,
+                CW.BackPixmap | CW.EventMask,
                 [
-                    self.default_screen.black_pixel,
+                    # self.default_screen.black_pixel,
+                    xcffib.xproto.BackPixmap._None,
                     EventMask.StructureNotify | EventMask.Exposure
                 ],
                 is_checked=True,
@@ -980,9 +981,9 @@ class Connection(object):
         if depth == 32:
             # http://stackoverflow.com/a/3646456
             cmap_id = self._new_colormap(visual_id, screen.root.wid)
-            background = self.conn.core.AllocColor(cmap_id, 0x2828, 0x8383, 0xCECE).reply().pixel  # Color "#2883ce"
+            # background = self.conn.core.AllocColor(cmap_id, 0x2828, 0x8383, 0xCECE).reply().pixel  # Color "#2883ce"
             values = [
-                background,
+                xcffib.xproto.BackPixmap._None,
                 0,
                 EventMask.StructureNotify | EventMask.Exposure,
                 cmap_id,
@@ -995,7 +996,7 @@ class Connection(object):
                     x, y, width, height, 0,
                     WindowClass.InputOutput,
                     visual_id,
-                    CW.BackPixel | CW.BorderPixel | CW.EventMask | CW.Colormap,
+                    CW.BackPixmap | CW.BorderPixel | CW.EventMask | CW.Colormap,
                     values,
                     is_checked=True,
                 ).check()
