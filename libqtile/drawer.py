@@ -307,15 +307,21 @@ class Drawer(object):
         height :
             the Y portion of the canvas to draw at the starting point.
         """
-        self.qtile.conn.conn.core.CopyArea(
-            self.pixmap,
-            self.wid,
-            self.gc,
-            0, 0,  # srcx, srcy
-            offsetx, offsety,  # dstx, dsty
-            self.width if width is None else width,
-            self.height if height is None else height
-        )
+        try:
+            self.qtile.conn.conn.core.CopyArea(
+                self.pixmap,
+                self.wid,
+                self.gc,
+                0, 0,  # srcx, srcy
+                offsetx, offsety,  # dstx, dsty
+                self.width if width is None else width,
+                self.height if height is None else height,
+                is_checked=True
+            ).check()
+        except:
+            from libqtile.log_utils import logger
+            logger.exception("Error in Drawer.draw")
+            raise
 
     def find_root_visual(self):
         scr_info = self.qtile.conn.default_screen.depth_to_visual[self.desired_depth]
