@@ -892,6 +892,7 @@ class Connection(object):
 
         self.modmap = None
         self.refresh_modmap()
+        self._visualid_to_colormap = {}
 
     def finalize(self):
         self.cursors.finalize()
@@ -940,17 +941,20 @@ class Connection(object):
         return self.code_to_syms[keycode][modifier]
 
 
-    def _new_colormap(self, visual_id, root_wid):
-        cmap_id = self.conn.generate_id()
-        self.conn.core.CreateColormap(
-            xcffib.xproto.ColormapAlloc._None,
-            cmap_id,
-            root_wid,
-            visual_id,
-            is_checked=True,
-        ).check()
-        return cmap_id
-
+    def _get_colormap(self, visual_id, root_wid):
+        try:
+            return self._visualid_to_colormap[visual_id]
+        except KeyError:
+            cmap_id = self.conn.generate_id()
+            self.conn.core.CreateColormap(
+                xcffib.xproto.ColormapAlloc._None,
+                cmap_id,
+                root_wid,
+                visual_id,
+                is_checked=True,
+            ).check()
+            self._visualid_to_colormap[visual_id] = cmap_id
+            return cmap_id
 
     def create_window(self, x, y, width, height, desired_depth=32):
         wid = self.conn.generate_id()
@@ -961,27 +965,9 @@ class Connection(object):
             logger.warning("Couldn't set depth to {} bit".format(desired_depth))
             depth, visual_id = screen.depth_to_visual[screen.root_depth]
 
-        def normal_window():
-            self.conn.core.CreateWindow(
-                screen.root_depth,
-                wid,
-                screen.root.wid,
-                x, y, width, height, 0,
-                WindowClass.InputOutput,
-                screen.root_visual,
-                CW.BackPixmap | CW.EventMask,
-                [
-                    # self.default_screen.black_pixel,
-                    xcffib.xproto.BackPixmap._None,
-                    EventMask.StructureNotify | EventMask.Exposure
-                ],
-                is_checked=True,
-            ).check()
-
-        if depth == 32:
-            # http://stackoverflow.com/a/3646456
-            cmap_id = self._new_colormap(visual_id, screen.root.wid)
-            # background = self.conn.core.AllocColor(cmap_id, 0x2828, 0x8383, 0xCECE).reply().pixel  # Color "#2883ce"
+        def new_window(depth, visual_id):
+            cmap_id = self._get_colormap(visual_id, screen.root.wid)
+            value_mask = CW.BackPixmap | CW.BorderPixel | CW.EventMask | CW.Colormap
             values = [
                 xcffib.xproto.BackPixmap._None,
                 0,
@@ -996,15 +982,17 @@ class Connection(object):
                     x, y, width, height, 0,
                     WindowClass.InputOutput,
                     visual_id,
-                    CW.BackPixmap | CW.BorderPixel | CW.EventMask | CW.Colormap,
+                    value_mask,
                     values,
                     is_checked=True,
                 ).check()
+                return Window(self, wid)
             except xcffib.xproto.MatchError:
-                logger.exception("Can't make 32bit window!")
-                normal_window()
-        return Window(self, wid)
+                logger.exception("Can't make {}-bit window with visual_id {}".format(depth, visual_id))
+                raise
 
+        return new_window(depth, visual_id)
+            
     def disconnect(self):
         self.conn.disconnect()
         self._connected = False
