@@ -18,15 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from __future__ import division
+from collections import namedtuple as _namedtuple
 
-from . import command
-from . import confreader
-from . import drawer
-from . import configurable
-from . import window
+from . import confreader as _confreader
+from .command import CommandObject as _CommandObject
+from .drawer import Drawer as _Drawer
+from .configurable import Configurable as _Configurable
+from .window import Internal as _Internal
 
 
-class Gap(command.CommandObject):
+class Gap(_CommandObject):
     """A gap placed along one of the edges of the screen
 
     If a gap has been defined, Qtile will avoid covering it with windows. The
@@ -138,9 +139,10 @@ class Obj(object):
 STRETCH = Obj("STRETCH")
 CALCULATED = Obj("CALCULATED")
 STATIC = Obj("STATIC")
+_BarParts = _namedtuple('_BarParts', ('window', 'drawer', 'screen_depth'))
 
 
-class Bar(Gap, configurable.Configurable):
+class Bar(Gap, _Configurable):
     """A bar, which can contain widgets
 
     Parameters
@@ -159,12 +161,51 @@ class Bar(Gap, configurable.Configurable):
 
     def __init__(self, widgets, size, **config):
         Gap.__init__(self, size)
-        configurable.Configurable.__init__(self, **config)
+        _Configurable.__init__(self, **config)
         self.add_defaults(Bar.defaults)
         self.widgets = widgets
         self.saved_focus = None
 
         self.queued_draws = 0
+        self.windows = {}
+        self.drawers = {}
+
+    def init_drawer(self, depth):
+        try:
+            return self.windows[depth], self.drawers[depth]
+        except KeyError:
+            iwin = _Internal.create(
+                self.qtile,
+                self.x, self.y, self.width, self.height,
+                opacity=self.opacity,
+                desired_depth=depth,
+            )
+
+            idrawer = _Drawer(
+                self.qtile,
+                iwin.window.wid,
+                self.width,
+                self.height,
+                desired_depth=depth,
+            )
+            idrawer.clear(self.background)
+            self.windows[depth] = iwin
+            self.drawers[depth] = idrawer
+            return _BarParts(iwin, idrawer, depth)
+
+    @property
+    def window(self):
+        try:
+            return self.windows[self.depth]
+        except KeyError:
+            return self.init_drawer(self.depth)[0]
+
+    @property
+    def drawer(self):
+        try:
+            return self.drawers[self.depth]
+        except KeyError:
+            return self.init_drawer(self.depth)[1]
 
     def _configure(self, qtile, screen):
         Gap._configure(self, qtile, screen)
@@ -179,23 +220,7 @@ class Bar(Gap, configurable.Configurable):
             if w.length_type == STRETCH:
                 stretches += 1
         if stretches > 1:
-            raise confreader.ConfigError("Only one STRETCH widget allowed!")
-
-        self.window = window.Internal.create(
-            self.qtile,
-            self.x, self.y, self.width, self.height,
-            opacity=self.opacity,
-            desired_depth=self.depth,
-        )
-
-        self.drawer = drawer.Drawer(
-            self.qtile,
-            self.window.window.wid,
-            self.width,
-            self.height,
-            desired_depth=self.depth,
-        )
-        self.drawer.clear(self.background)
+            raise _confreader.ConfigError("Only one STRETCH widget allowed!")
 
         self.window.handle_Expose = self.handle_Expose
         self.window.handle_ButtonPress = self.handle_ButtonPress
@@ -209,7 +234,8 @@ class Bar(Gap, configurable.Configurable):
         self._resize(self.length, self.widgets)
 
     def finalize(self):
-        self.drawer.finalize()
+        for drawer in self.drawers.values():
+            drawer.finalize()
 
     def _resize(self, length, widgets):
         stretches = [i for i in widgets if i.length_type == STRETCH]
