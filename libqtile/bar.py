@@ -209,6 +209,8 @@ class Bar(Gap, _Configurable):
 
     def _configure(self, qtile, screen):
         Gap._configure(self, qtile, screen)
+        from libqtile.log_utils import logger
+        self._logger = logger
 
         stretches = 0
         for w in self.widgets:
@@ -229,8 +231,14 @@ class Bar(Gap, _Configurable):
         self.window.unhide()
 
         for i in self.widgets:
-            qtile.registerWidget(i)
-            i._configure(qtile, self)
+            try:
+                i._configure(qtile, self)
+                qtile.registerWidget(i)
+            except:
+                msg = "Couldn't configure widget {!r}".format(i)
+                self._logger.exception(msg)
+                raise
+
         self._resize(self.length, self.widgets)
 
     def finalize(self):
@@ -320,7 +328,11 @@ class Bar(Gap, _Configurable):
         self.queued_draws = 0
         self._resize(self.length, self.widgets)
         for i in self.widgets:
-            i.draw()
+            try:
+                i.draw()
+            except:
+                self._logger("Can't draw widget {!r}".format(i))
+                raise
         if self.widgets:
             end = i.offset + i.length
             if end < self.length:
