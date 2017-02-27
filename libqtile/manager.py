@@ -737,6 +737,11 @@ class Qtile(command.CommandObject):
                         r = h(e)
                         if not r:
                             break
+
+            except xcffib.xproto.MatchError:
+                msg = 'xcffib.xproto.MatchError in qtile._xpoll() {!r}'
+                logger.exception(msg.format(e))
+
             # Catch some bad X exceptions. Since X is event based, race
             # conditions can occur almost anywhere in the code. For
             # example, if a window is created and then immediately
