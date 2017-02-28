@@ -331,7 +331,7 @@ class Bar(Gap, _Configurable):
             try:
                 i.draw()
             except:
-                self._logger("Can't draw widget {!r}".format(i))
+                self._logger.exception("Can't draw widget {!r}".format(i))
                 raise
         if self.widgets:
             end = i.offset + i.length
