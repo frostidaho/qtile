@@ -91,6 +91,15 @@ class Subscribe(object):
         """
         return self._subscribe("startup_complete", func)
 
+    def initialized(self, func):
+        """Called when the qtile manager is completely initialized
+
+        **Arguments**
+
+            * qtile manager instance
+        """
+        return self._subscribe('initialized', func)
+
     def status_update(self, name):
         """Called when widget status updates are ready
 
@@ -284,6 +293,15 @@ class Subscribe(object):
             * group object on which layout is changed
         """
         return self._subscribe("layout_change", func)
+
+    def keymap_change(self, func):
+        """Called on Qtile keymap change
+
+        **Arguments**
+
+            * the new keymap
+        """
+        return self._subscribe("keymap_change", func)
 
     def net_wm_icon_change(self, func):
         """Called on `_NET_WM_ICON` chance
