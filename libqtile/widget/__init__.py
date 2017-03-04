@@ -52,6 +52,7 @@ def safe_import(module_name, class_name):
 safe_import(".backlight", "Backlight")
 safe_import(".battery", ["Battery", "BatteryIcon"])
 safe_import(".clock", "Clock")
+safe_import(".currentkeymap", "CurrentKeyMap")
 safe_import(".currentlayout", ["CurrentLayout", "CurrentLayoutIcon"])
 safe_import(".currentscreen", "CurrentScreen")
 safe_import(".debuginfo", "DebugInfo")
