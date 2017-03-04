@@ -25,7 +25,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import os as _os
-from collections import UserList as _UserList
+from six.moves import UserList as _UserList
+from xcffib import ConnectionException as _ConnectionException
 
 from . import command
 from . import hook
@@ -82,7 +83,7 @@ class Key(object):
 class KeyMap(_UserList):
     try:
         _valid_mask = _get_valid_mask()
-    except IndexError:
+    except (IndexError, _ConnectionException):
         # This IndexError occurs when creating documentation via sphinx
         _valid_mask = -19
 
