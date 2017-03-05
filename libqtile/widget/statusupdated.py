@@ -3,7 +3,6 @@ from .. import hook, configurable, bar, log_utils
 from . import textbox, base
 
 logger = log_utils.logger
-DEFAULT_UPDATE_INTERVAL = 1.0
 
 class _StatusUpdatedMixin(object):
     """_StatusUpdatedMixin
@@ -14,8 +13,12 @@ class _StatusUpdatedMixin(object):
     Optional:
     cls.status_poller() - a method for widgets that need polling
                           it returns a new status
-    cls.status_poll_timeout - timeout for status_poller in seconds
+    cls.status_poll_interval - timeout for status_poller in seconds
     """
+    _default_update_interval = 1.0
+    _default_status = None
+    class PollCancel(Exception):
+        pass
 
     def _configure(self, qtile, bar):
         super(_StatusUpdatedMixin, self)._configure(qtile, bar)
@@ -42,7 +45,7 @@ class _StatusUpdatedMixin(object):
         try:
             return self._status
         except AttributeError:
-            self.status = None
+            self.status = self._default_status
             return self.status
 
     @status.setter
@@ -50,16 +53,16 @@ class _StatusUpdatedMixin(object):
         self._status = value
 
     @property
-    def status_poll_timeout(self):
+    def status_poll_interval(self):
         try:
-            return self._status_poll_timeout
+            return self._status_poll_interval
         except AttributeError:
-            self.status_poll_timeout = DEFAULT_UPDATE_INTERVAL
-            return self.status_poll_timeout
+            self.status_poll_interval = self._default_update_interval
+            return self.status_poll_interval
 
-    @status_poll_timeout.setter
-    def status_poll_timeout(self, value):
-        self._status_poll_timeout = value
+    @status_poll_interval.setter
+    def status_poll_interval(self, value):
+        self._status_poll_interval = value
 
     def status_set_and_update(self, status, method_name='', *pargs, **kwargs):
         "Set status & run status_update()"
@@ -72,8 +75,10 @@ class _StatusUpdatedMixin(object):
             self.status_update(*pargs, **kwargs)
         except:
             logger.exception('status_update failed: {}'.format(' '.join(lines)))
+            raise
 
     def status_call_poller(self):
+        "Run self.status_poller once"
         def callback(future):
             try:
                 result = future.result()
@@ -92,13 +97,16 @@ class _StatusUpdatedMixin(object):
         def callback(future):
             try:
                 result = future.result()
-            except Exception:
+            except self.PollCancel:
                 logger.exception(
-                    ('status_poller() raised an exception in '
+                    ('status_poller() raised PollCancel() in '
                      'timer_setup.callback. Not rescheduling status_poller()'))
                 return
+            except:
+                logger.exception('status_poller() raised an exception in timer_setup.callback')
+                result = self.status
             self.status_set_and_update(result)
-            self.timeout_add(self.status_poll_timeout, fn)
+            self.timeout_add(self.status_poll_interval, fn)
 
         def fn():
             future = self.qtile.run_in_executor(self.status_poller)
@@ -119,20 +127,9 @@ class _StatusUpdatedMixin(object):
 
 
 class StatUpText(_StatusUpdatedMixin, textbox.TextBox):
+    _default_status = ''
     def status_update(self, *pargs, **kwargs):
         super(StatUpText, self).update(self.status)
-
-    @property
-    def status(self):
-        try:
-            return self._status
-        except AttributeError:
-            self.status = self.text
-            return self.status
-
-    @status.setter
-    def status(self, value):
-        self._status = value
 
 
 class StatUpImage(_StatusUpdatedMixin, base._Widget):
@@ -146,6 +143,7 @@ class StatUpImage(_StatusUpdatedMixin, base._Widget):
     ]
     margin_x = configurable.ExtraFallback('margin_x', 'margin')
     margin_y = configurable.ExtraFallback('margin_y', 'margin')
+    _default_update_interval = 9.9
 
     def __init__(self, length=bar.CALCULATED, **config):
         super(StatUpImage, self).__init__(length=bar.CALCULATED, **config)
