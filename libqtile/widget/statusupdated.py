@@ -1,5 +1,4 @@
 import sys
-import traceback
 from .. import hook, configurable, bar, log_utils
 from . import textbox, base
 
@@ -71,10 +70,8 @@ class _StatusUpdatedMixin(object):
         self.status = status
         try:
             self.status_update(*pargs, **kwargs)
-        except Exception:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            logger.warning('status_update failed: {}'.format(' '.join(lines)))
+        except:
+            logger.exception('status_update failed: {}'.format(' '.join(lines)))
 
     def status_call_poller(self):
         def callback(future):
