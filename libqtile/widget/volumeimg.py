@@ -6,7 +6,6 @@ from . import statusupdated
 from .. import hook
 
 
-DEFAULT_UPDATE_INTERVAL = 0.5
 GET_VOL_CMD = ('amixer', 'get', 'Master')
 
 AudioStatus = namedtuple('AudioStatus', ('volume', 'muted'))
@@ -49,7 +48,7 @@ class VolumeImg(statusupdated.StatUpImage):
             height=32,
         )
     >>> vol = widget.VolumeImg(loader)
-    >>> vol.status_poll_timeout = 6.7 # update timeout
+    >>> vol.status_poll_interval = 6.7 # update timeout
 
 
     Updating widget ahead of schedule by user:
