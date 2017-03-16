@@ -26,28 +26,30 @@ class Dmenu():
     Python wrapper for dmenu
     http://tools.suckless.org/dmenu/
 
-
     config.py should have something like:
 
-    from libqtile import extention
-    mod = 'mod4'
-    keys = [
-        ...
-        Key([mod], 'l', lazy.run_extention(extention.WindowList)),
-        Key([mod], 'r', lazy.run_extention(extention.DmenuRun)),
-        ...
-    ]
-    extentions = {
-        'dmenu': {
-            'prompt': "→",
-            'font' : "Andika-8",
-            'background' : "#15181a",
-            'foreground' : "#00ff00",
-            'selected_background' : "#079822",
-            'selected_foreground' : "#fff",
-            'height' : 24,
+    .. code-block:: python
+
+        from libqtile import extension
+        mod = 'mod4'
+        keys = [
+            ...
+            Key([mod], 'l', lazy.run_extension(extension.WindowList)),
+            Key([mod], 'r', lazy.run_extension(extension.DmenuRun)),
+            ...
+        ]
+        extensions = {
+            'dmenu': {
+                'prompt': ">",
+                'font': "Andika-8",
+                'background': "#15181a",
+                'foreground': "#00ff00",
+                'selected_background': "#079822",
+                'selected_foreground': "#fff",
+                'height': 24,  # Only supported by some dmenu forks
+            }
         }
-    }
+
     """
 
     defaults = [
@@ -60,7 +62,7 @@ class Dmenu():
         ("foreground", None, "defines the normal foreground color"),
         ("selected_background", None, "defines the selected background color"),
         ("selected_foreground", None, "defines the selected foreground color"),
-        ("height", None, "defines the height"),
+        ("height", None, "defines the height (only supported by some dmenu forks)"),
     ]
 
     args = []
@@ -94,6 +96,7 @@ class Dmenu():
             self.args.extend(("-sb", config['selected_background']))
         if 'selected_foreground' in config and config['selected_foreground']:
             self.args.extend(("-sf", config['selected_foreground']))
+        # NOTE: The original dmenu doesn't support the '-h' option
         if 'height' in config and config['height']:
             self.args.extend(("-h", str(config['height'])))
 
@@ -113,8 +116,8 @@ class DmenuRun():
     config = {}
 
     def __init__(self, qtile):
-        if hasattr(qtile.config, 'extentions') and qtile.config.extentions['dmenu']:
-            self.config = qtile.config.extentions['dmenu']
+        if hasattr(qtile.config, 'extensions') and qtile.config.extensions['dmenu']:
+            self.config = qtile.config.extensions['dmenu']
 
     def run(self):
         dmenu = Dmenu(self.config)

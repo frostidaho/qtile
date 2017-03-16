@@ -1883,7 +1883,12 @@ class Qtile(command.CommandObject):
         return [True, malloc_dump]
 
     def cmd_run_extention(self, cls):
-        """Extentions should run from command run()"""
+        """Deprecated alias for cmd_run_extension()"""
+        # TODO: Remove this method in the future
+        return self.cmd_run_extension(cls)
+
+    def cmd_run_extension(self, cls):
+        """Extensions should run from command run()"""
         c = cls(self)
         c.run()
 
