@@ -80,7 +80,25 @@ class TaskList(base._Widget, base.PaddingMixin, base.MarginMixin):
             None,
             "Spacing between tasks."
             "(if set to None, will be equal to margin_x)"
-        )
+        ),
+        (
+            'txt_minimized',
+            '_ ',
+            'Text representation of the minimized window state. '
+            'e.g., "_ " or "\U0001F5D5 "'
+        ),
+        (
+            'txt_maximized',
+            '[] ',
+            'Text representation of the maximized window state. '
+            'e.g., "[] " or "\U0001F5D6 "'
+        ),
+        (
+            'txt_floating',
+            'V ',
+            'Text representation of the floating window state. '
+            'e.g., "V " or "\U0001F5D7 "'
+        ),
     ]
 
     def __init__(self, **config):
@@ -116,11 +134,11 @@ class TaskList(base._Widget, base.PaddingMixin, base.MarginMixin):
         if window is None:
             pass
         elif window.minimized:
-            state = '\U0001F5D5 '  # minimize character
+            state = self.txt_minimized
         elif window.maximized:
-            state = '\U0001F5d6 '  # maximize character
+            state = self.txt_maximized
         elif window.floating:
-            state = '\U0001F5D7 '  # overlap character
+            state = self.txt_floating
 
         return "%s%s" % (state, window.name if window and window.name else "?")
 
@@ -203,7 +221,7 @@ class TaskList(base._Widget, base.PaddingMixin, base.MarginMixin):
         self.update(window)
 
     def setup_hooks(self):
-        hook.subscribe.window_name_change(self.update)
+        hook.subscribe.client_name_updated(self.update)
         hook.subscribe.focus_change(self.update)
         hook.subscribe.float_change(self.update)
         hook.subscribe.client_urgent_hint_changed(self.update)
