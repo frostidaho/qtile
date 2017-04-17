@@ -90,7 +90,7 @@ class VerticalTile(_SimpleLayoutBase):
         ('border_normal', '#FFFFFF', 'Border color for un-focused windows.'),
         ('border_width', 1, 'Border width.'),
         ('margin', 0, 'Border margin.'),
-        ('name', 'VerticalTile', 'Name of this layout.'),
+        ('name', 'verticaltile', 'Name of this layout.'),
     ]
 
     ratio = 0.75
@@ -98,7 +98,7 @@ class VerticalTile(_SimpleLayoutBase):
 
     def __init__(self, **config):
         _SimpleLayoutBase.__init__(self, **config)
-        self.add_defaults(self.defaults)
+        self.add_defaults(VerticalTile.defaults)
         self.maximized = None
 
     def add(self, window):

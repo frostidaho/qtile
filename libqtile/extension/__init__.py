@@ -18,5 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .dmenu import Dmenu, DmenuRun      # noqa
-from .window_list import WindowList     # noqa
+from ..utils import safe_import as safe_import_
+
+
+def safe_import(module_name, class_name):
+    safe_import_((".extension", module_name), class_name, globals())
+
+
+safe_import("base", "RunCommand")
+safe_import("dmenu", ["Dmenu", "DmenuRun", "J4DmenuDesktop"])
+safe_import("window_list", "WindowList")

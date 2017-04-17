@@ -22,42 +22,50 @@ import re
 
 from .dmenu import Dmenu
 
-class WindowList():
+class WindowList(Dmenu):
     """
     Give vertical list of all open windows in dmenu. Switch to selected.
     """
-    config = {}
-    qtile = None
-    wins = []
-    id_map = {}
 
-    def __init__(self, qtile):
-        self.qtile = qtile
-        if hasattr(qtile.config, 'extensions') and qtile.config.extensions['dmenu']:
-            self.config = qtile.config.extensions['dmenu']
+    defaults = [
+        ("item_format", "{group}.{id}: {window}", "the format for the menu items"),
+    ]
 
-    def get_windows(self):
+    def __init__(self, **config):
+        Dmenu.__init__(self, **config)
+        self.add_defaults(WindowList.defaults)
+
+    def _configure(self, qtile):
+        Dmenu._configure(self, qtile)
+
+    def list_windows(self):
         id = 0
-        self.wins = []
-        self.id_map = {}
+        self.item_to_win = {}
         for win in self.qtile.windowMap.values():
             if win.group:
-                self.wins.append("%i: %s (%s)" % (id, win.name, win.group.name))
-                self.id_map[id] = win
-                id = id + 1
-
-        return id
+                item = self.item_format.format(
+                    group=win.group.name, id=id, window=win.name)
+                self.item_to_win[item] = win
+                id += 1
 
     def run(self):
-        win_count = self.get_windows()
-        config_tmp = self.config
-        dmenu = Dmenu(config_tmp, win_count)
-        out = dmenu.call(self.wins)
-        if not out:
+        self.list_windows()
+        out = super(WindowList, self).run(items=self.item_to_win.keys())
+
+        try:
+            sout = out.rstrip('\n')
+        except AttributeError:
+            # out is not a string (for example it's a Popen object returned
+            # by super(WindowList, self).run() when there are no menu items to
+            # list
             return
 
-        id = int(re.match(b"^\d+", out).group())
-        win = self.id_map[id]
+        try:
+            win = self.item_to_win[sout]
+        except KeyError:
+            # The selected window got closed while the menu was open?
+            return
+
         screen = self.qtile.currentScreen
         screen.setGroup(win.group)
         win.group.focus(win)
