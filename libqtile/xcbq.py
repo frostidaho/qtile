@@ -35,7 +35,6 @@
     complete - it only implements the subset of functionalty needed by qtile.
 """
 from __future__ import print_function, division
-
 import six
 
 from xcffib.xproto import CW, WindowClass, EventMask
