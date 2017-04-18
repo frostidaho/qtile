@@ -236,13 +236,13 @@ def test_kill_window(qtile):
     qtile.testwindows = []
     qtile.c.window[qtile.c.window.info()["id"]].kill()
     qtile.c.sync()
-    for _ in range(20):
-        time.sleep(0.1)
+    @retry(ignore_exceptions=(ValueError,))
+    def success():
         if not qtile.c.windows():
-            break
-    else:
+            return True
+        raise ValueError("window hasn't died!")
+    if not success():
         raise AssertionError("Window did not die...")
-
 
 @manager_config
 @no_xinerama
