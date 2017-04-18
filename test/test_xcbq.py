@@ -41,6 +41,12 @@ def test_net_wm_states(xdisplay):
     for name in names:
         assert getattr(win, name) is True
 
+    for name in names:
+        setattr(win, name, False)
+        val = getattr(win, name)
+        assert val is False
+
+
 
 def test_masks():
     cfgmasks = xcbq.ConfigureMasks
