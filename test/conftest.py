@@ -51,6 +51,43 @@ max_sleep = 10
 sleep_time = 0.05
 
 
+class retry:
+    def __init__(self, fail_msg='retry failed!', ignore_exceptions=(),
+                 dt=sleep_time, tmax=max_sleep):
+        self.fail_msg = fail_msg
+        self.ignore_exceptions = ignore_exceptions
+        self.dt = dt
+        self.tmax = tmax
+
+    def __call__(self, fn):
+        import time
+        from functools import wraps
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            _time, _sleep = time.time, time.sleep
+            tmax = self.tmax
+            tmax += _time()
+            dt = self.dt
+            ignore_exceptions = self.ignore_exceptions
+
+            while _time() <= tmax:
+                try:
+                    return fn(*args, **kwargs)
+                except ignore_exceptions:
+                    pass
+                _sleep(dt)
+                dt *= 1.5
+            raise AssertionError(self.fail_msg)
+        return wrapper
+
+
+@retry(ignore_exceptions=(xcffib.ConnectionException,))
+def can_connect_x11(disp=':0'):
+    conn = xcffib.connect(display=disp)
+    conn.disconnect()
+    return True
+
 def _find_display():
     """Returns the next available display"""
     from xvfbwrapper import Xvfb
@@ -146,14 +183,8 @@ class Xephyr(object):
 
             start = time.time()
             # wait for X display to come up
-            while self.proc.poll() is None and time.time() < start + max_sleep:
-                try:
-                    conn = xcffib.connect(self.display)
-                except xcffib.ConnectionException:
-                    time.sleep(sleep_time)
-                else:
-                    conn.disconnect()
-                    return
+            if can_connect_x11(self.display):
+                return
         else:
             # we wern't able to get a display up
             self.display = None
