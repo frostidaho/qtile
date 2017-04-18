@@ -53,11 +53,9 @@ sleep_time = 0.05
 
 def _find_display():
     """Returns the next available display"""
-    display = 1
-    while os.path.exists("/tmp/.X11-unix/X{0}".format(display)):
-        display += 1
-    return display
-
+    from xvfbwrapper import Xvfb
+    xvfb = Xvfb()
+    return xvfb._get_next_unused_display()
 
 def whereis(program):
     """Search PATH for executable"""
