@@ -47,9 +47,8 @@ HEIGHT = 600
 SECOND_WIDTH = 640
 SECOND_HEIGHT = 480
 
-max_sleep = 15.0
-sleep_time = 0.025
-
+max_sleep = 20.0
+sleep_time = 0.1
 class retry:
     def __init__(self, fail_msg='retry failed!', ignore_exceptions=(),
                  dt=sleep_time, tmax=max_sleep):
@@ -300,23 +299,21 @@ class Qtile(object):
         """
         if not args:
             raise AssertionError("Trying to run nothing! (missing arguments)")
-        start = len(self.c.windows())
-
+        client = self.c
+        start = len(client.windows())
         proc = subprocess.Popen(args, env={"DISPLAY": self.display})
-
-        while proc.poll() is None:
-            try:
-                if len(self.c.windows()) > start:
-                    break
-            except RuntimeError:
-                pass
-            time.sleep(sleep_time)
+        @retry(ignore_exceptions=(RuntimeError,))
+        def success():
+            while proc.poll() is None:
+                if len(client.windows()) > start:
+                    return True
+            return False
+        if success():
+            self.testwindows.append(proc)
         else:
             proc.terminate()
             proc.wait()
             raise AssertionError("Window never appeared...")
-
-        self.testwindows.append(proc)
         return proc
 
     def kill_window(self, proc):
