@@ -176,15 +176,13 @@ def test_togroup(qtile):
 def test_resize(qtile):
     self = qtile
     self.c.screen[0].resize(x=10, y=10, w=100, h=100)
-    @retry(ignore_exceptions=(ValueError,))
-    def resize():
+    @retry(ignore_exceptions=(AssertionError), fail_msg="Screen didn't resize")
+    def run():
         d = self.c.screen[0].info()
-        if d["width"] == d["height"] == 100:
-            return d
-        raise ValueError("window hasn't resized yet!")
-    d = resize()
-    if not d:
-        raise AssertionError("Screen didn't resize")
+        assert d['width'] == 100
+        assert d['height'] == 100
+        return d
+    d = run()
     assert d['x'] == d['y'] == 10
 
 
