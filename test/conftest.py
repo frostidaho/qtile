@@ -380,27 +380,12 @@ def xvfb():
     display = ":{:d}".format(_find_display())
     args = ["Xvfb", display, "-screen", "0", "800x600x16"]
     proc = subprocess.Popen(args)
-
-    try:
-        # wait for X display to come up
-        start = time.time()
-        while proc.poll() is None and time.time() < start + max_sleep:
-            try:
-                conn = xcffib.connect(display)
-            except xcffib.ConnectionException:
-                time.sleep(sleep_time)
-            else:
-                conn.disconnect()
-                break
-        else:
-            raise OSError("Xvfb did not come up")
-
-        os.environ["DISPLAY"] = display
-
-        yield
-    finally:
-        proc.terminate()
-        proc.wait()
+    if not can_connect_x11(display):
+        raise OSError("Xvfb did not come up")
+    os.environ['DISPLAY'] = display
+    yield
+    proc.terminate()
+    proc.wait()
 
 
 @pytest.yield_fixture(scope="function")
