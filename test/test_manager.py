@@ -794,8 +794,8 @@ def test_resize_(qtile):
     @retry(ignore_exceptions=(AssertionError,), fail_msg="Screen did not resize")
     def run():
         d = self.c.screen.info()
-        assert s['width'] == 480
-        assert s['height'] == 640
+        assert d['width'] == 480
+        assert d['height'] == 640
         return True
     run()
 
