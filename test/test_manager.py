@@ -836,12 +836,7 @@ def test_xterm_kill_window(qtile):
     self.testXterm()
     self.c.window.kill()
     self.c.sync()
-    for _ in range(10):
-        time.sleep(0.1)
-        if not self.c.windows():
-            break
-    else:
-        raise AssertionError("xterm did not die")
+    assert_has_n_windows(self.c, 0)
 
 
 @pytest.mark.parametrize("qtile", [BareConfig, ManagerConfig], indirect=True)
