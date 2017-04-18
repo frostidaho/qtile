@@ -47,9 +47,8 @@ HEIGHT = 600
 SECOND_WIDTH = 640
 SECOND_HEIGHT = 480
 
-max_sleep = 10
-sleep_time = 0.05
-
+max_sleep = 15.0
+sleep_time = 0.025
 
 class retry:
     def __init__(self, fail_msg='retry failed!', ignore_exceptions=(),
@@ -87,6 +86,14 @@ def can_connect_x11(disp=':0'):
     conn = xcffib.connect(display=disp)
     conn.disconnect()
     return True
+
+@retry(ignore_exceptions=(libqtile.ipc.IPCError,))
+def can_connect_qtile(socket_path):
+    client = libqtile.command.Client(socket_path)
+    val = client.status()
+    if val == 'OK':
+        return True
+    return False
 
 def _find_display():
     """Returns the next available display"""
@@ -238,33 +245,13 @@ class Qtile(object):
         self.proc.start()
 
         # First, wait for socket to appear
-        start = time.time()
-        while time.time() < start + max_sleep:
-            if os.path.exists(self.sockfile):
-                break
-
-            if rpipe.poll(sleep_time):
-                error = rpipe.recv()
-                raise AssertionError("Error launching Qtile, traceback:\n%s" % error)
-        else:
-            raise AssertionError("Error launching Qtile, socket never came up")
-
-        self.c = libqtile.command.Client(self.sockfile)
-
-        # Next, wait for server to come up
-        start = time.time()
-        while time.time() < start + max_sleep:
-            try:
-                if self.c.status() == "OK":
-                    break
-            except libqtile.ipc.IPCError:
-                pass
-
-            if rpipe.poll(sleep_time):
-                error = rpipe.recv()
-                raise AssertionError("Error launching Qtile, traceback:\n%s" % error)
-        else:
-            raise AssertionError("Error launching Qtile, quit without exception")
+        if can_connect_qtile(self.sockfile):
+            self.c = libqtile.command.Client(self.sockfile)
+            return
+        if rpipe.poll(sleep_time):
+            error = rpipe.recv()
+            raise AssertionError("Error launching Qtile, traceback:\n%s" % error)
+        raise AssertionError("Error launching Qtile")
 
     def create_manager(self, config_class):
         """Create a Qtile manager instance in this thread
