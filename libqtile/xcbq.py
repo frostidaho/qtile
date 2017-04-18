@@ -174,19 +174,6 @@ PropertyMap = {
     "_NET_WM_WINDOW_TYPE": ("CARDINAL", 32),
     # Net State
     "_NET_WM_STATE": ("ATOM", 32),
-    '_NET_WM_STATE_MODAL': ('ATOM', 32),
-    '_NET_WM_STATE_STICKY': ('ATOM', 32),
-    '_NET_WM_STATE_MAXIMIZED_VERT': ('ATOM', 32),
-    '_NET_WM_STATE_MAXIMIZED_HORZ': ('ATOM', 32),
-    '_NET_WM_STATE_SHADED': ('ATOM', 32),
-    '_NET_WM_STATE_SKIP_TASKBAR': ('ATOM', 32),
-    '_NET_WM_STATE_SKIP_PAGER': ('ATOM', 32),
-    '_NET_WM_STATE_HIDDEN': ('ATOM', 32),
-    '_NET_WM_STATE_FULLSCREEN': ('ATOM', 32),
-    '_NET_WM_STATE_ABOVE': ('ATOM', 32),
-    '_NET_WM_STATE_BELOW': ('ATOM', 32),
-    '_NET_WM_STATE_DEMANDS_ATTENTION': ('ATOM', 32),
-    '_NET_WM_STATE_FOCUSED': ('ATOM', 32),
     # Xembed
     "_XEMBED_INFO": ("_XEMBED_INFO", 32),
     # ICCCM
@@ -194,6 +181,8 @@ PropertyMap = {
     # Qtile-specific properties
     "QTILE_INTERNAL": ("CARDINAL", 32)
 }
+for _name in net_wm_states:
+    PropertyMap[_name] = ('ATOM', 32)
 
 # TODO add everything required here:
 # http://standards.freedesktop.org/wm-spec/latest/ar01s03.html
