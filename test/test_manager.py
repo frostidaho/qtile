@@ -39,7 +39,7 @@ import libqtile.config
 import libqtile.hook
 import libqtile.confreader
 
-from .conftest import whereis, BareConfig, no_xinerama
+from .conftest import whereis, BareConfig, no_xinerama, retry
 
 
 class ManagerConfig(object):
@@ -175,17 +175,17 @@ def test_togroup(qtile):
 @manager_config
 def test_resize(qtile):
     self = qtile
-
     self.c.screen[0].resize(x=10, y=10, w=100, h=100)
-    for _ in range(10):
-        time.sleep(0.1)
+    @retry(ignore_exceptions=(ValueError,))
+    def resize():
         d = self.c.screen[0].info()
-
         if d["width"] == d["height"] == 100:
-            break
-    else:
+            return d
+        raise ValueError("window hasn't resized yet!")
+    d = resize()
+    if not d:
         raise AssertionError("Screen didn't resize")
-    assert d["x"] == d["y"] == 10
+    assert d['x'] == d['y'] == 10
 
 
 @no_xinerama
