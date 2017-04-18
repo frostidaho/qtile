@@ -791,14 +791,13 @@ def test_resize_(qtile):
             "-display", self.display
         ]
     )
-    for _ in range(10):
-        time.sleep(0.1)
+    @retry(ignore_exceptions=(AssertionError,), fail_msg="Screen did not resize")
+    def run():
         d = self.c.screen.info()
-
-        if d["width"] == 480 and d["height"] == 640:
-            break
-    else:
-        raise AssertionError("Screen did not resize")
+        assert s['width'] == 480
+        assert s['height'] == 640
+        return True
+    run()
 
 
 @manager_config
