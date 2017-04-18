@@ -323,18 +323,17 @@ class Qtile(object):
         ensuring that qtile removes it from the `windows` attribute.
         """
         assert proc in self.testwindows, "Given process is not a spawned window"
-
         start = len(self.c.windows())
-
         proc.terminate()
         proc.wait()
         self.testwindows.remove(proc)
-
-        for _ in range(100):
+        @retry(ignore_exceptions=(ValueError,))
+        def success():
             if len(self.c.windows()) < start:
-                break
-            time.sleep(sleep_time)
-        else:
+                return True
+            raise ValueError('window is still in client list!')
+
+        if not success():
             raise AssertionError("Window could not be killed...")
 
     def testWindow(self, name):
