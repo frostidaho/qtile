@@ -230,7 +230,6 @@ def test_spawn_list(qtile):
 
 @retry(ignore_exceptions=(ValueError,))
 def has_n_windows(client, n_windows=0):
-    client.sync()
     if len(client.windows()) == n_windows:
         return True
     raise ValueError('client still has windows!')
@@ -768,13 +767,14 @@ def test_rotate(qtile):
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE
     )
-    for _ in range(10):
-        time.sleep(0.1)
+
+    @retry(ignore_exceptions=(AssertionError,), fail_msg="Screen did not rotate")
+    def run():
         s = self.c.screens()[0]
-        if s["width"] == height and s["height"] == width:
-            break
-    else:
-        raise AssertionError("Screen did not rotate")
+        assert s['width'] == height
+        assert s['height'] == width
+        return True
+    run()
 
 
 # TODO: see note on test_resize
