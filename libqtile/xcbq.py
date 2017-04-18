@@ -267,7 +267,6 @@ class MaskMap(object):
 
 ConfigureMasks = MaskMap(xcffib.xproto.ConfigWindow)
 AttributeMasks = MaskMap(CW)
-GCMasks = MaskMap(xcffib.xproto.GC)
 
 
 class AtomCache(object):
@@ -408,15 +407,6 @@ class XFixes(object):
                                                   SELECTION,
                                                   self.selection_mask)
 
-
-class GC(object):
-    def __init__(self, conn, gid):
-        self.conn = conn
-        self.gid = gid
-
-    def change(self, **kwargs):
-        mask, values = GCMasks(**kwargs)
-        self.conn.conn.core.ChangeGC(self.gid, mask, values)
 
 class NetWmState(object):
     """NetWmState is a descriptor for _NET_WM_STATE_* properties"""
@@ -771,12 +761,6 @@ class Window(object):
 
     def get_attributes(self):
         return self.conn.conn.core.GetWindowAttributes(self.wid).reply()
-
-    def create_gc(self, **kwargs):
-        gid = self.conn.conn.generate_id()
-        mask, values = GCMasks(**kwargs)
-        self.conn.conn.core.CreateGC(gid, self.wid, mask, values)
-        return GC(self.conn, gid)
 
     def ungrab_key(self, key, modifiers):
         """Passing None means any key, or any modifier"""
