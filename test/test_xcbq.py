@@ -40,3 +40,12 @@ def test_net_wm_states(xdisplay):
     
     for name in names:
         assert getattr(win, name) is True
+
+
+def test_masks():
+    cfgmasks = xcbq.ConfigureMasks
+    d = {'x':1, 'y':2, 'width':640, 'height':480}
+    mask, vals = cfgmasks(**d)
+    assert set(vals) == set(d.values())
+    with pytest.raises(ValueError):
+        mask, vals = cfgmasks(asdf=32, **d)
