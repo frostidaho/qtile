@@ -228,11 +228,10 @@ def test_spawn_list(qtile):
     # Spawn something with a pid greater than init's
     assert int(qtile.c.spawn(["echo", "true"])) > 1
 
-@retry(ignore_exceptions=(ValueError,))
-def has_n_windows(client, n_windows=0):
-    if len(client.windows()) == n_windows:
-        return True
-    raise ValueError('client still has windows!')
+@retry(ignore_exceptions=(AssertionError,), fail_msg='Window did not die!')
+def assert_has_n_windows(client, n_windows=0):
+    assert len(client.windows()) == n_windows
+    return True
 
 @manager_config
 @no_xinerama
@@ -241,8 +240,7 @@ def test_kill_window(qtile):
     qtile.testwindows = []
     qtile.c.window[qtile.c.window.info()["id"]].kill()
     qtile.c.sync()
-    if not has_n_windows(qtile.c, 0):
-        raise AssertionError("Window did not die...")
+    assert_has_n_windows(qtile.c, 0)
 
 @manager_config
 @no_xinerama
@@ -260,8 +258,7 @@ def test_kill_other(qtile):
     assert len(self.c.windows()) == 2
 
     self.kill_window(one)
-    if not has_n_windows(self.c, 1):
-        raise AssertionError("Window did not die")
+    assert_has_n_windows(self.c, 1)
 
     assert self.c.window.info()["name"] == "two"
     assert self.c.window.info()["width"] == 798
