@@ -35,34 +35,40 @@ icons['audio-volume-high'] = lambda aud_stat: True
 
 class VolumeImg(statusupdated.StatUpImage):
     """VolumeImg a graphical volume status widget
+
     It displays the volume status based on icons located in the directories
     defined in the given image loader (libqtile.images.Loader).
 
     Widget creation example:
-    >>> loader = libqtile.images.Loader(
-            [
-                '/usr/share/icons/Numix/32',
-                '/usr/share/icons/Numix/24',
-                '/usr/share/icons/Numix/22',
-                '/usr/share/icons/Adwaita/32x32',
-                '/usr/share/icons/Adwaita',
-            ],
-            width=32,
-            height=32,
-        )
-    >>> vol = widget.VolumeImg(loader)
-    >>> vol.status_poll_interval = 6.7 # update timeout
 
+    .. code-block:: python
+
+       loader = libqtile.images.Loader(
+           [
+               '/usr/share/icons/Numix/32',
+               '/usr/share/icons/Numix/24',
+               '/usr/share/icons/Numix/22',
+               '/usr/share/icons/Adwaita/32x32',
+               '/usr/share/icons/Adwaita',
+           ],
+           width=32,
+           height=32,
+       )
+       vol = widget.VolumeImg(loader)
+       vol.status_poll_interval = 6.7 # update timeout
 
     Updating widget ahead of schedule by user:
-    >>> @libqtile.command.lazy.function
-        def vol_toggle_mute(qtile):
-            cmd = 'amixer sset Master toggle'
-            qtile.cmd_spawn(cmd)
-            qtile.call_later(
-                0.1, qtile.cmd_update_status,
-                'volumeimg', '', 'status_call_poller',
-            )
+
+    .. code-block:: python
+
+       @libqtile.command.lazy.function
+       def vol_toggle_mute(qtile):
+           cmd = 'amixer sset Master toggle'
+           qtile.cmd_spawn(cmd)
+           qtile.call_later(
+               0.1, qtile.cmd_update_status,
+               'volumeimg', '', 'status_call_poller',
+           )
 
     """
 
