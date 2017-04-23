@@ -211,7 +211,7 @@ class Bar(Gap, configurable.Configurable):
             except Exception:
                 logger.exception("Can't configure widget %r", widget)
                 self.widgets.remove(widget)
-            
+
         self._resize(self.length, self.widgets)
 
     def finalize(self):
