@@ -168,7 +168,6 @@ class Loader(object):
         width = width if width is not None else self.width
         height = height if height is not None else self.height
 
-        total = []
         if not image_path:
             logger.warning("Can't load image with no given path, name=%r", name)
             return LoadedImg(
