@@ -82,4 +82,3 @@ safe_import("currentkeymap", "CurrentKeyMap")
 safe_import("statusupdated", ["StatUpText", "StatUpImage"])
 safe_import("volumeimg", "VolumeImg")
 safe_import("image2", "Image2")
-
