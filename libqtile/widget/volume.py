@@ -30,7 +30,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 import re
 import subprocess
 
@@ -173,7 +172,7 @@ class Volume(base._TextBox):
             'audio-volume-muted',
         ]
         loaded_images = ldr.icons(images)
-        if any((x.success == False for x in loaded_images)):
+        if any((x.success is False for x in loaded_images)):
             self.theme_path = None
             self.length_type = bar.CALCULATED
             logger.exception('Volume switching to text mode')
