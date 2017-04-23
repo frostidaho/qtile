@@ -26,7 +26,6 @@
 # SOFTWARE.
 import os as _os
 from six.moves import UserList as _UserList
-from xcffib import ConnectionException as _ConnectionException
 
 from . import command
 from . import hook
@@ -37,7 +36,12 @@ from six import MAXSIZE
 import warnings
 
 def _get_valid_mask(display=_os.environ.get('DISPLAY', '')):
-    conn = xcbq.Connection(display)
+    try:
+        conn = xcbq.Connection(display)
+    except Exception: # hack for building sphinx documentation
+        # Should be xcffib.ConnectionException, but sphinx
+        # won't build with this exception
+        return -19
     try:
         nc = conn.keysym_to_keycode(xcbq.keysyms["Num_Lock"])
         numlockMask = xcbq.ModMasks[conn.get_modifier(nc)]
@@ -81,11 +85,7 @@ class Key(object):
 
 
 class KeyMap(_UserList):
-    try:
-        _valid_mask = _get_valid_mask()
-    except (IndexError, _ConnectionException):
-        # This IndexError occurs when creating documentation via sphinx
-        _valid_mask = -19
+    _valid_mask = _get_valid_mask()
 
     def __init__(self, *keys, **kwds):
         self.name = kwds.pop('name', '')
