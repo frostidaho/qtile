@@ -1853,4 +1853,3 @@ class Qtile(command.CommandObject):
 
     def cmd_update_status(self, name, status, *pargs, **kwargs):
         hook.fire('status_update_{}'.format(name), status, *pargs, **kwargs)
-
