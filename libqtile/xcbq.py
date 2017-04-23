@@ -884,6 +884,7 @@ class Connection(object):
         self.refresh_keymap()
 
         self.modmap = None
+        self.reverse_modmap = None
         self.refresh_modmap()
 
     def finalize(self):
@@ -914,10 +915,13 @@ class Connection(object):
         keycodes_per_modifier = mod_mapping.keycodes_per_modifier
 
         modmap = _defaultdict(list)
+        reverse_modmap = {}
         names = (_repeat(x, keycodes_per_modifier) for x in ModMapOrder)
         for name, keycode in zip(names, keycodes):
             modmap[name].append(keycode)
+            reverse_modmap[keycode] = name
         self.modmap = modmap
+        self.reverse_modmap = reverse_modmap
 
     def get_modifier(self, keycode):
         """Return the modifier matching keycode"""
