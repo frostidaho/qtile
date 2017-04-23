@@ -35,6 +35,8 @@
     complete - it only implements the subset of functionalty needed by qtile.
 """
 from __future__ import print_function, division
+from collections import defaultdict as _defaultdict
+from itertools import repeat as _repeat
 import six
 
 from xcffib.xproto import CW, WindowClass, EventMask
@@ -907,11 +909,14 @@ class Connection(object):
         self.first_sym_to_code = first_sym_to_code
 
     def refresh_modmap(self):
-        q = self.conn.core.GetModifierMapping().reply()
-        modmap = {}
-        for i, k in enumerate(q.keycodes):
-            l = modmap.setdefault(ModMapOrder[i // q.keycodes_per_modifier], [])
-            l.append(k)
+        mod_mapping = self.conn.core.GetModifierMapping().reply()
+        keycodes = list(mod_mapping.keycodes)
+        keycodes_per_modifier = mod_mapping.keycodes_per_modifier
+
+        modmap = _defaultdict(list)
+        names = (_repeat(x, keycodes_per_modifier) for x in ModMapOrder)
+        for name, keycode in zip(names, keycodes):
+            modmap[name].append(keycode)
         self.modmap = modmap
 
     def get_modifier(self, keycode):
