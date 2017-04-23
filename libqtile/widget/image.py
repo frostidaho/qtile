@@ -66,7 +66,7 @@ class Image(base._Widget, base.MarginMixin):
         if not loaded_img.success:
             raise ValueError("Couldn't load the image {!r}".format(self.filename))
         self.image = loaded_img.surface
-        
+
         self.pattern = cairocffi.SurfacePattern(self.image)
 
         self.image_width = self.image.get_width()
