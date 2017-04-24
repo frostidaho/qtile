@@ -50,7 +50,7 @@ def test_x11_keys(xcbq_conn, ex_key):
     mm = xcbq.ModMasks
     calcmask = reduce(operator.or_, (mm[x] for x in mods), 0)
 
-    for val in qkey.get_x11_keys():
+    for val in qkey.get_x11():
         assert isinstance(val, keymap._X11Key)
         assert val.code == xcbq_conn.keysym_to_keycode(xcbq.keysyms['t'])
         assert val.mask == calcmask
@@ -58,14 +58,14 @@ def test_x11_keys(xcbq_conn, ex_key):
 
 def test_x11_keys_ignore(xcbq_conn, ex_key):
     key, qkey = ex_key
-    xkeys = list(qkey.get_x11_keys('lock'))
+    xkeys = list(qkey.get_x11('lock'))
     assert len(xkeys) == 2
     mm = xcbq.ModMasks
     mods = list(key.modifiers)
     assert xkeys[0].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
     mods.append('lock')
     assert xkeys[1].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
-    xkeys = list(qkey.get_x11_keys('lock', ['lock',]))
+    xkeys = list(qkey.get_x11('lock', ['lock',]))
     assert len(xkeys) == 2
 
 def test_x11_keys_numlock(xcbq_conn, ex_key):
@@ -73,9 +73,9 @@ def test_x11_keys_numlock(xcbq_conn, ex_key):
     numlock_mask = next(qkey._strs_to_masks(['Num_Lock',]))
     assert numlock_mask == 16
 
-    xkeys = list(qkey.get_x11_keys(['lock', 'Num_Lock']))
+    xkeys = list(qkey.get_x11(['lock', 'Num_Lock']))
     assert len(xkeys) == 2
 
-    xkeys = list(qkey.get_x11_keys(['lock', 'Num_Lock'], 'Num_Lock'))
+    xkeys = list(qkey.get_x11(['lock', 'Num_Lock'], 'Num_Lock'))
     assert len(xkeys) == 3
 

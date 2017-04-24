@@ -103,11 +103,6 @@ class _QKey(Press):
     def code(self):
         return self.keycode
 
-    def get_x11_keys(self, *ignore_modifiers):
-        for val in self.get_x11(*ignore_modifiers):
-            yield val
-
-
 def x11_keys(xcbq_conn, *cfg_keys):
     QKey = _QKey
     ignore_modifiers = (
