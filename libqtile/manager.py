@@ -432,7 +432,7 @@ class Qtile(command.CommandObject):
             if t_xkey not in d_keymap:
                 continue
             ungrab_key(*t_xkey)
-            del(d_keymap[t_xkey])
+            del d_keymap[t_xkey]
 
     def update_net_desktops(self):
         try:
