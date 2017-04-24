@@ -39,7 +39,7 @@ class Press(object):
             yield val
             cache[mod] = val
 
-    def mods_to_mask(self, *modifiers):
+    def mods_to_mask(self, modifiers):
         or_ = operator.or_
         to_masks = self._strs_to_masks
         try:
@@ -62,7 +62,7 @@ class _QKey(Press):
         self.keysym = cfg_key.keysym
         self.keycode = conn.keysym_to_keycode(self.keysym)
         self.modmask = cfg_key.modmask
-        # self.modmask = self.mods_to_mask(*cfg_key.modifiers)
+        # self.modmask = self.mods_to_mask(cfg_key.modifiers)
 
     def get_x11_keys(self, *ignore_modifiers):
         keycode = self.keycode
@@ -78,7 +78,7 @@ class _QKey(Press):
         for mods in ignore_modifiers:
             if isinstance(mods, str):
                 mods = (mods,)
-            ignore_masks.append(self.mods_to_mask(*mods))
+            ignore_masks.append(self.mods_to_mask(mods))
         for mask in ignore_masks:
             new_mask = modmask | mask
             if new_mask in seen_masks:
