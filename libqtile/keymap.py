@@ -24,17 +24,18 @@ class QKey(object):
         keysym_to_keycode = self.conn.keysym_to_keycode
         reverse_modmap = self.conn.reverse_modmap
         for mod in modifiers:
+            print('mod', mod)
             try:
                 yield d_modmasks[mod]
             except KeyError:
                 _keysym = d_keysyms[mod]
                 _keycode = keysym_to_keycode(_keysym)
                 print('keysym', _keysym, 'keycode', _keycode)
-                try:
-                    # _name = reverse_modmap[_keycode]
-                    _name = self.conn.get_modifier(_keycode)
-                    yield d_modmasks[_name]
-                except KeyError:
+                _name = reverse_modmap[_keycode]
+                print('_name', _name)
+                if _name:
+                    yield d_modmasks[_name[0]]
+                else:
                     yield 0
 
 
@@ -60,7 +61,7 @@ class QKey(object):
         for mods in ignore_modifiers:
             if isinstance(mods, str):
                 mods = [mods,]
-            masks = self._strs_to_masks(mods)
+            masks = list(self._strs_to_masks(mods))
             ignore_masks.append(self.mods_to_mask(masks))
 
         # ignore_masks = self._strs_to_masks(ignore_modifiers)
