@@ -60,11 +60,8 @@ class QKey(object):
         ignore_masks =[]
         for mods in ignore_modifiers:
             if isinstance(mods, str):
-                mods = [mods,]
-            # masks = self._strs_to_masks(mods)
+                mods = (mods,)
             ignore_masks.append(self.mods_to_mask(*mods))
-
-        # ignore_masks = self._strs_to_masks(ignore_modifiers)
         for mask in ignore_masks:
             new_mask = modmask | mask
             if new_mask in seen_masks:

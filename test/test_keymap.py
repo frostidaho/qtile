@@ -6,7 +6,7 @@ from six.moves import reduce
 import operator
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope='function', autouse=True)
 def xdisplay(request):
     from xvfbwrapper import Xvfb
     xvfb = Xvfb(width=1280, height=720)
@@ -41,7 +41,8 @@ def test_qkey_strs_to_masks(xcbq_conn, ex_key):
         assert val == next(strs_to_masks([key,]))
 
     numlock_mask = next(strs_to_masks(['Num_Lock',]))
-    assert numlock_mask == 16 or numlock_mask == 0
+    assert numlock_mask == 16
+    # assert numlock_mask == 16 or numlock_mask == 0
 
 def test_x11_keys(xcbq_conn, ex_key):
     key, qkey = ex_key
@@ -54,15 +55,6 @@ def test_x11_keys(xcbq_conn, ex_key):
         assert val.code == xcbq_conn.keysym_to_keycode(xcbq.keysyms['t'])
         assert val.mask == calcmask
     
-# def test_x11_keys_ignore(xcbq_conn, ex_key):
-#     key, qkey = ex_key
-#     xkeys = list(qkey.get_x11_keys(['lock',], ['lock',]))
-#     assert len(xkeys) == 2
-#     mm = xcbq.ModMasks
-#     mods = list(key.modifiers)
-#     assert xkeys[0].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
-#     mods.append('lock')
-#     assert xkeys[1].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
 
 def test_x11_keys_ignore(xcbq_conn, ex_key):
     key, qkey = ex_key
@@ -73,14 +65,17 @@ def test_x11_keys_ignore(xcbq_conn, ex_key):
     assert xkeys[0].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
     mods.append('lock')
     assert xkeys[1].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
+    xkeys = list(qkey.get_x11_keys('lock', ['lock',]))
+    assert len(xkeys) == 2
 
+def test_x11_keys_numlock(xcbq_conn, ex_key):
+    key, qkey = ex_key
+    numlock_mask = next(qkey._strs_to_masks(['Num_Lock',]))
+    assert numlock_mask == 16
 
-# def test_x11_keys_numlock(xcbq_conn, ex_key):
-#     key, qkey = ex_key
-#     xkeys = list(qkey.get_x11_keys(['lock', 'Num_Lock']))
-#     numlock_mask = next(qkey._strs_to_masks(['Num_Lock',]))
-#     if numlock_mask == 0:
-#         assert len(xkeys) == 2
-#     else:
-#         assert len(xkeys) == 3
+    xkeys = list(qkey.get_x11_keys(['lock', 'Num_Lock']))
+    assert len(xkeys) == 2
+
+    xkeys = list(qkey.get_x11_keys(['lock', 'Num_Lock'], 'Num_Lock'))
+    assert len(xkeys) == 3
 
