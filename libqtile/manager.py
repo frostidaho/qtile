@@ -685,8 +685,8 @@ class Qtile(command.CommandObject):
 
     def grabKeys(self):
         self.root.ungrab_key(None, None)
-        for key in self.keyMap.values():
-            self.mapKey(key)
+        keys = set(self.keyMap.values())
+        self.map_keys(*keys)
 
     def get_target_chain(self, ename, e):
         """Returns a chain of targets that can handle this event
