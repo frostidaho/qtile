@@ -14,9 +14,11 @@ class QKey(object):
         self.conn = conn
         self.cfg_key = cfg_key
 
-        self.keysym = xcbq.keysyms[cfg_key.key]
+        # self.keysym = xcbq.keysyms[cfg_key.key]
+        self.keysym = cfg_key.keysym
         self.keycode = conn.keysym_to_keycode(self.keysym)
-        self.modmask = self.mods_to_mask(*cfg_key.modifiers)
+        self.modmask = cfg_key.modmask
+        # self.modmask = self.mods_to_mask(*cfg_key.modifiers)
 
     def _strs_to_masks(self, modifiers):
         d_keysyms = xcbq.keysyms
