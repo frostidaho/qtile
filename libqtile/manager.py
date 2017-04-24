@@ -30,6 +30,7 @@ from xcffib.xproto import EventMask, WindowError, AccessError, DrawableError
 import io
 import logging
 import os
+import collections
 import pickle
 import shlex
 import signal
@@ -210,11 +211,10 @@ class Qtile(command.CommandObject):
             pass
         self.config.mouse += (Click([], "Button1", command.lazy.function(noop), focus="after"),)
 
-        self.mouseMap = {}
-        for i in self.config.mouse:
-            if self.mouseMap.get(i.button_code) is None:
-                self.mouseMap[i.button_code] = []
-            self.mouseMap[i.button_code].append(i)
+        mouse_map = collections.defaultdict(list)
+        for action in self.config.mouse:
+            mouse_map[action.button_code].append(action)
+        self.mouseMap = mouse_map
 
         self.grabMouse()
 
