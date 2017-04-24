@@ -5,11 +5,13 @@ import operator
 
 _X11Key = _namedtuple('_X11Key', ('code', 'mask', 'cfg_key'))
 
+
 class _QKey(object):
     '''A class used by manager.py
 
     Not intended to be used in your config.py
     '''
+
     def __init__(self, conn, cfg_key):
         self.conn = conn
         self.cfg_key = cfg_key
@@ -40,7 +42,6 @@ class _QKey(object):
                 else:
                     yield 0
 
-
     def mods_to_mask(self, *modifiers):
         or_ = operator.or_
         to_masks = self._strs_to_masks
@@ -59,7 +60,7 @@ class _QKey(object):
         seen_masks = {modmask}
         # TODO ignore masks should be some sort of permutation
         # of all of the ignore modifiers
-        ignore_masks =[]
+        ignore_masks = []
         for mods in ignore_modifiers:
             if isinstance(mods, str):
                 mods = (mods,)
@@ -82,4 +83,3 @@ def x11_keys(xcbq_conn, *cfg_keys):
         qkey = QKey(xcbq_conn, cfg_key)
         for xkey in qkey.get_x11_keys(*ignore_modifiers):
             yield xkey
-
