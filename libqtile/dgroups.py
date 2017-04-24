@@ -42,7 +42,7 @@ def simple_key_binder(mod, keynames=None):
     def func(dgroup):
         # unbind all
         for key in dgroup.keys[:]:
-            dgroup.qtile.unmapKey(key)
+            dgroup.qtile.unmap_keys(key)
             dgroup.keys.remove(key)
 
         if keynames:

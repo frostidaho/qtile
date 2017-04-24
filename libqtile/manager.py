@@ -423,15 +423,16 @@ class Qtile(command.CommandObject):
             )
             d_keymap[(code, mask)] = cfg_key
 
-    def unmapKey(self, key):
+    def unmap_keys(self, *keys):
         ungrab_key = self.root.ungrab_key
-        _tuple = tuple
-        for xkey in keymap.x11_keys(self.conn, key):
-            t_xkey = _tuple(xkey)
-            if t_xkey not in self.key_map:
+        d_keymap = self.key_map
+        for xkey in keymap.x11_keys(self.conn, *keys):
+            code, mask, cfg_key = xkey
+            t_xkey = (code, mask)
+            if t_xkey not in d_keymap:
                 continue
-            ungrab_key(xkey.code, xkey.mask)
-            del(self.key_map[t_xkey])
+            ungrab_key(*t_xkey)
+            del(d_keymap[t_xkey])
 
     def update_net_desktops(self):
         try:
