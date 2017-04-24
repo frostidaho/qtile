@@ -110,6 +110,10 @@ class Qtile(command.CommandObject):
         self.groupMap = {}
         self.groups = []
         self.keyMap = {}
+        self.ignore_modifiers = (
+            ('lock', 'Num_Lock'),
+            ('Num_Lock',),
+        )
 
         # Find the modifier mask for the numlock key, if there is one:
         nc = self.conn.keysym_to_keycode(xcbq.keysyms["Num_Lock"])
@@ -414,7 +418,8 @@ class Qtile(command.CommandObject):
         grab_key = self.root.grab_key
         async = xcffib.xproto.GrabMode.Async
         _tuple = tuple
-        for xkey in qkey.get_x11_keys('lock', 'Num_Lock'):
+        # for xkey in qkey.get_x11_keys(['lock', 'Num_Lock'], 'Num_Lock'):
+        for xkey in qkey.get_x11_keys(*self.ignore_modifiers):
             grab_key(
                 xkey.code,
                 xkey.mask,
@@ -429,7 +434,8 @@ class Qtile(command.CommandObject):
         ungrab_key = self.root.ungrab_key
         async = xcffib.xproto.GrabMode.Async
         _tuple = tuple
-        for xkey in qkey.get_x11_keys('lock', 'Num_Lock'):
+        # for xkey in qkey.get_x11_keys('lock', 'Num_Lock'):
+        for xkey in qkey.get_x11_keys(*self.ignore_modifiers):
             t_xkey = _tuple(xkey)
             if t_xkey not in self.keyMap:
                 continue
