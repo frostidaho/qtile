@@ -55,6 +55,7 @@ from . import hook
 from . import utils
 from . import window
 from . import xcbq
+from . import keymap
 
 
 if sys.version_info >= (3, 3):
@@ -409,45 +410,31 @@ class Qtile(command.CommandObject):
             self.screens.append(s)
 
     def mapKey(self, key):
-        self.keyMap[(key.keysym, key.modmask & self.validMask)] = key
-        code = self.conn.keysym_to_keycode(key.keysym)
-        self.root.grab_key(
-            code,
-            key.modmask,
-            True,
-            xcffib.xproto.GrabMode.Async,
-            xcffib.xproto.GrabMode.Async,
-        )
-        if self.numlockMask:
-            self.root.grab_key(
-                code,
-                key.modmask | self.numlockMask,
+        qkey = keymap.QKey(self.conn, key)
+        grab_key = self.root.grab_key
+        async = xcffib.xproto.GrabMode.Async
+        _tuple = tuple
+        for xkey in qkey.get_x11_keys('lock', 'Num_Lock'):
+            grab_key(
+                xkey.code,
+                xkey.mask,
                 True,
-                xcffib.xproto.GrabMode.Async,
-                xcffib.xproto.GrabMode.Async,
+                async,
+                async,
             )
-            self.root.grab_key(
-                code,
-                key.modmask | self.numlockMask | xcbq.ModMasks["lock"],
-                True,
-                xcffib.xproto.GrabMode.Async,
-                xcffib.xproto.GrabMode.Async,
-            )
+            self.keyMap[_tuple(xkey)] = key
 
     def unmapKey(self, key):
-        key_index = (key.keysym, key.modmask & self.validMask)
-        if key_index not in self.keyMap:
-            return
-
-        code = self.conn.keysym_to_keycode(key.keysym)
-        self.root.ungrab_key(code, key.modmask)
-        if self.numlockMask:
-            self.root.ungrab_key(code, key.modmask | self.numlockMask)
-            self.root.ungrab_key(
-                code,
-                key.modmask | self.numlockMask | xcbq.ModMasks["lock"]
-            )
-        del(self.keyMap[key_index])
+        qkey = keymap.QKey(self.conn, key)
+        ungrab_key = self.root.ungrab_key
+        async = xcffib.xproto.GrabMode.Async
+        _tuple = tuple
+        for xkey in qkey.get_x11_keys('lock', 'Num_Lock'):
+            t_xkey = _tuple(xkey)
+            if t_xkey not in self.keyMap:
+                continue
+            ungrab_key(xkey.code, xkey.mask)
+            del(self.keyMap[t_xkey])
 
     def update_net_desktops(self):
         try:
@@ -902,11 +889,13 @@ class Qtile(command.CommandObject):
                 logger.info("Invalid Desktop Index: %s" % index)
 
     def handle_KeyPress(self, e):
-        keysym = self.conn.code_to_syms[e.detail][0]
+        # keysym = self.conn.code_to_syms[e.detail][0]
+        code = e.detail
         state = e.state
-        if self.numlockMask:
-            state = e.state | self.numlockMask
-        k = self.keyMap.get((keysym, state & self.validMask))
+        k = self.keyMap.get((code, state))
+        # if self.numlockMask:
+        #     state = e.state | self.numlockMask
+        # k = self.keyMap.get((keysym, state & self.validMask))
         if not k:
             logger.info("Ignoring unknown keysym: %s" % keysym)
             return

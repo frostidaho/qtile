@@ -3,7 +3,7 @@ from libqtile import xcbq
 from six.moves import reduce
 import operator
 
-_X11Key = _namedtuple('_X11Key', ('code', 'mask', 'cfg_key'))
+_X11Key = _namedtuple('_X11Key', ('code', 'mask'))
 
 class QKey(object):
     '''A class used by manager.py
@@ -31,7 +31,8 @@ class QKey(object):
                 _keycode = keysym_to_keycode(_keysym)
                 print('keysym', _keysym, 'keycode', _keycode)
                 try:
-                    _name = reverse_modmap[_keycode]
+                    # _name = reverse_modmap[_keycode]
+                    _name = self.conn.get_modifier(_keycode)
                     yield d_modmasks[_name]
                 except KeyError:
                     yield 0
@@ -51,16 +52,24 @@ class QKey(object):
         X11Key = _X11Key
         cfg_key = self.cfg_key
 
-        yield X11Key(keycode, modmask, cfg_key)
+        yield X11Key(keycode, modmask)
         seen_masks = {modmask}
-        # ignore_masks = self.mods_to_mask(ignore_modifiers)
-        ignore_masks = self._strs_to_masks(ignore_modifiers)
+        # TODO ignore masks should be some sort of permutation
+        # of all of the ignore modifiers
+        ignore_masks =[]
+        for mods in ignore_modifiers:
+            if isinstance(mods, str):
+                mods = [mods,]
+            masks = self._strs_to_masks(mods)
+            ignore_masks.append(self.mods_to_mask(masks))
+
+        # ignore_masks = self._strs_to_masks(ignore_modifiers)
         for mask in ignore_masks:
             new_mask = modmask | mask
             if new_mask in seen_masks:
                 continue
             seen_masks.add(new_mask)
-            yield X11Key(keycode, new_mask, cfg_key)
+            yield X11Key(keycode, new_mask)
 
 
 
