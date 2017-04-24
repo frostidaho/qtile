@@ -16,7 +16,7 @@ class QKey(object):
 
         self.keysym = xcbq.keysyms[cfg_key.key]
         self.keycode = conn.keysym_to_keycode(self.keysym)
-        self.modmask = self.mods_to_mask(cfg_key.modifiers)
+        self.modmask = self.mods_to_mask(*cfg_key.modifiers)
 
     def _strs_to_masks(self, modifiers):
         d_keysyms = xcbq.keysyms
@@ -39,7 +39,7 @@ class QKey(object):
                     yield 0
 
 
-    def mods_to_mask(self, modifiers):
+    def mods_to_mask(self, *modifiers):
         or_ = operator.or_
         to_masks = self._strs_to_masks
         try:
@@ -61,8 +61,8 @@ class QKey(object):
         for mods in ignore_modifiers:
             if isinstance(mods, str):
                 mods = [mods,]
-            masks = list(self._strs_to_masks(mods))
-            ignore_masks.append(self.mods_to_mask(masks))
+            # masks = self._strs_to_masks(mods)
+            ignore_masks.append(self.mods_to_mask(*mods))
 
         # ignore_masks = self._strs_to_masks(ignore_modifiers)
         for mask in ignore_masks:

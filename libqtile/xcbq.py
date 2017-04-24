@@ -910,19 +910,16 @@ class Connection(object):
         self.first_sym_to_code = first_sym_to_code
 
     def refresh_modmap(self):
-        mod_mapping = self.conn.core.GetModifierMapping().reply()
-        keycodes = list(mod_mapping.keycodes)
-        keycodes_per_modifier = mod_mapping.keycodes_per_modifier
-
-        modmap = _defaultdict(list)
+        q = self.conn.core.GetModifierMapping().reply()
+        modmap = {}
         reverse_modmap = _defaultdict(list)
-        names = (_repeat(x, keycodes_per_modifier) for x in ModMapOrder)
-        for name, keycode in zip(names, keycodes):
-            modmap[name].append(keycode)
-            reverse_modmap[keycode].append(name)
+        for i, k in enumerate(q.keycodes):
+            name = ModMapOrder[i // q.keycodes_per_modifier]
+            l = modmap.setdefault(name, [])
+            l.append(k)
+            reverse_modmap[k].append(name)
         self.modmap = modmap
         self.reverse_modmap = reverse_modmap
-        print(reverse_modmap)
 
     def get_modifier(self, keycode):
         """Return the modifier matching keycode"""
