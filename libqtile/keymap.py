@@ -16,8 +16,7 @@ class QKey(object):
 
         self.keysym = xcbq.keysyms[cfg_key.key]
         self.keycode = conn.keysym_to_keycode(self.keysym)
-        self.modmask = self.mods_to_mask(*cfg_key.modifiers)
-
+        self.modmask = self.mods_to_mask(cfg_key.modifiers)
 
     def _strs_to_masks(self, modifiers):
         d_keysyms = xcbq.keysyms
@@ -33,12 +32,12 @@ class QKey(object):
                 _name = reverse_modmap[_keycode]
                 yield d_modmasks[_name]
 
-    def mods_to_mask(self, *modifiers):
+    def mods_to_mask(self, modifiers):
         or_ = operator.or_
         to_masks = self._strs_to_masks
         reduce(or_, to_masks(modifiers))
 
-    def __iter__(self, *ignore_modifiers):
+    def get_x11_keys(self, *ignore_modifiers):
         keycode = self.keycode
         modmask = self.modmask
         X11Key = _X11Key
