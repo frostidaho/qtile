@@ -4,11 +4,12 @@ from six.moves import reduce
 import operator
 
 _X11Key = _namedtuple('_X11Key', ('code', 'mask', 'cfg_key'))
-# _X11Button = _namedtuple('_X11Button', ('code', 'mask', 'cfg_button'))
-
-_X11Input = _namedtuple('_X11Input', ('code', 'mask', 'cfg_obj'))
+_X11Click = _namedtuple('_X11Click', ('code', 'mask', 'cfg_click'))
+_X11Drag = _namedtuple('_X11Drag', ('code', 'mask', 'cfg_drag'))
+# _X11Input = _namedtuple('_X11Input', ('code', 'mask', 'cfg_obj'))
 
 class Press(object):
+    # _X11Input = _X11Input
     _mask_cache = {}
     def __init__(self, conn, cfg_obj, **kwargs):
         self.conn = conn
@@ -61,7 +62,7 @@ class Press(object):
 
     def get_x11(self, *ignore_modifiers):
         modmask = self.modmask
-        X11Input = _X11Input
+        X11Input = self._X11Input
         cfg_obj = self.cfg_obj
         code = self.code
 
@@ -85,7 +86,7 @@ class _QKey(Press):
 
     Not intended to be used in your config.py
     '''
-
+    _X11Input = _X11Key
     def __init__(self, conn, cfg_key):
         super(_QKey, self).__init__(conn, cfg_key)
 
@@ -116,7 +117,21 @@ def x11_keys(xcbq_conn, *cfg_keys):
 
 
 class _QClick(Press):
+    _X11Input = _X11Click
     def __init__(self, conn, cfg_click):
         super(_QClick, self).__init__(conn, cfg_click)
+
+    @property
+    def code(self):
+        return self.cfg_obj.button_code
+
+class _QDrag(Press):
+    _X11Input = _X11Drag
+    def __init__(self, conn, cfg_drag):
+        super(_QDrag, self).__init__(conn, cfg_drag)
+
+    @property
+    def code(self):
+        return self.cfg_obj.button_code
 
         

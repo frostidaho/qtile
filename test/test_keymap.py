@@ -51,7 +51,7 @@ def test_x11_keys(xcbq_conn, ex_key):
     calcmask = reduce(operator.or_, (mm[x] for x in mods), 0)
 
     for val in qkey.get_x11_keys():
-        assert isinstance(val, keymap._X11Input)
+        assert isinstance(val, keymap._X11Key)
         assert val.code == xcbq_conn.keysym_to_keycode(xcbq.keysyms['t'])
         assert val.mask == calcmask
     
