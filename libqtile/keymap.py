@@ -42,10 +42,7 @@ class Press(object):
     def mods_to_mask(self, modifiers):
         or_ = operator.or_
         to_masks = self._strs_to_masks
-        try:
-            return reduce(or_, to_masks(modifiers))
-        except TypeError:
-            return 0
+        return reduce(or_, to_masks(modifiers), 0)
 
 
 class _QKey(Press):
