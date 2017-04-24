@@ -411,6 +411,7 @@ class Qtile(command.CommandObject):
     def map_keys(self, *keys):
         grab_key = self.root.grab_key
         async = xcffib.xproto.GrabMode.Async
+        d_keymap = self.key_map
         for xkey in keymap.x11_keys(self.conn, *keys):
             code, mask, cfg_key = xkey
             grab_key(
@@ -420,7 +421,7 @@ class Qtile(command.CommandObject):
                 async,
                 async,
             )
-            self.key_map[(code, mask)] = cfg_key
+            d_keymap[(code, mask)] = cfg_key
 
     def unmapKey(self, key):
         ungrab_key = self.root.ungrab_key
