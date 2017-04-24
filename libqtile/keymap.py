@@ -8,15 +8,17 @@ _X11Click = _namedtuple('_X11Click', ('code', 'mask', 'cfg_click'))
 _X11Drag = _namedtuple('_X11Drag', ('code', 'mask', 'cfg_drag'))
 # _X11Input = _namedtuple('_X11Input', ('code', 'mask', 'cfg_obj'))
 
+
 class Press(object):
     # _X11Input = _X11Input
     _mask_cache = {}
+
     def __init__(self, conn, cfg_obj, **kwargs):
         self.conn = conn
         self.cfg_obj = cfg_obj
         self.modmask = cfg_obj.modmask
         sa = setattr
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             sa(self, k, v)
 
     @property
@@ -87,6 +89,7 @@ class _QKey(Press):
     Not intended to be used in your config.py
     '''
     _X11Input = _X11Key
+
     def __init__(self, conn, cfg_key):
         super(_QKey, self).__init__(conn, cfg_key)
 
@@ -104,6 +107,7 @@ class _QKey(Press):
         for val in self.get_x11(*ignore_modifiers):
             yield val
 
+
 def x11_keys(xcbq_conn, *cfg_keys):
     QKey = _QKey
     ignore_modifiers = (
@@ -118,6 +122,7 @@ def x11_keys(xcbq_conn, *cfg_keys):
 
 class _QClick(Press):
     _X11Input = _X11Click
+
     def __init__(self, conn, cfg_click):
         super(_QClick, self).__init__(conn, cfg_click)
 
@@ -125,13 +130,13 @@ class _QClick(Press):
     def code(self):
         return self.cfg_obj.button_code
 
+
 class _QDrag(Press):
     _X11Input = _X11Drag
+
     def __init__(self, conn, cfg_drag):
         super(_QDrag, self).__init__(conn, cfg_drag)
 
     @property
     def code(self):
         return self.cfg_obj.button_code
-
-        
