@@ -424,7 +424,6 @@ class Qtile(command.CommandObject):
 
     def unmapKey(self, key):
         ungrab_key = self.root.ungrab_key
-        async = xcffib.xproto.GrabMode.Async
         _tuple = tuple
         for xkey in keymap.x11_keys(self.conn, key):
             t_xkey = _tuple(xkey)
@@ -886,14 +885,11 @@ class Qtile(command.CommandObject):
                 logger.info("Invalid Desktop Index: %s" % index)
 
     def handle_KeyPress(self, e):
-        # keysym = self.conn.code_to_syms[e.detail][0]
         code = e.detail
         state = e.state
         k = self.keyMap.get((code, state))
-        # if self.numlockMask:
-        #     state = e.state | self.numlockMask
-        # k = self.keyMap.get((keysym, state & self.validMask))
         if not k:
+            keysym = self.conn.code_to_syms[code][0]
             logger.info("Ignoring unknown keysym: %s" % keysym)
             return
         for i in k.commands:
