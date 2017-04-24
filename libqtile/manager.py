@@ -414,7 +414,7 @@ class Qtile(command.CommandObject):
             self.screens.append(s)
 
     def mapKey(self, key):
-        qkey = keymap.QKey(self.conn, key)
+        qkey = keymap._QKey(self.conn, key)
         grab_key = self.root.grab_key
         async = xcffib.xproto.GrabMode.Async
         _tuple = tuple
@@ -430,7 +430,7 @@ class Qtile(command.CommandObject):
             self.keyMap[_tuple(xkey)] = key
 
     def unmapKey(self, key):
-        qkey = keymap.QKey(self.conn, key)
+        qkey = keymap._QKey(self.conn, key)
         ungrab_key = self.root.ungrab_key
         async = xcffib.xproto.GrabMode.Async
         _tuple = tuple

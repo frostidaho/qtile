@@ -5,7 +5,7 @@ import operator
 
 _X11Key = _namedtuple('_X11Key', ('code', 'mask'))
 
-class QKey(object):
+class _QKey(object):
     '''A class used by manager.py
 
     Not intended to be used in your config.py
