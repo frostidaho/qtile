@@ -204,8 +204,6 @@ class Qtile(command.CommandObject):
 
         # Map and Grab keys
         self.map_keys(*self.config.keys)
-        # for key in self.config.keys:
-        #     self.mapKey(key)
 
         # It fixes problems with focus when clicking windows of some specific clients like xterm
         def noop(qtile):
@@ -423,21 +421,6 @@ class Qtile(command.CommandObject):
                 async,
             )
             self.keyMap[(code, mask)] = cfg_key
-
-    def mapKey(self, key):
-        # TODO replace mapKey with map_keys
-        grab_key = self.root.grab_key
-        async = xcffib.xproto.GrabMode.Async
-        _tuple = tuple
-        for xkey in keymap.x11_keys(self.conn, key):
-            grab_key(
-                xkey.code,
-                xkey.mask,
-                True,
-                async,
-                async,
-            )
-            self.keyMap[_tuple(xkey)] = key
 
     def unmapKey(self, key):
         ungrab_key = self.root.ungrab_key

@@ -64,9 +64,7 @@ def simple_key_binder(mod, keynames=None):
             dgroup.keys.append(key)
             dgroup.keys.append(key_s)
             dgroup.keys.append(key_c)
-            dgroup.qtile.mapKey(key)
-            dgroup.qtile.mapKey(key_s)
-            dgroup.qtile.mapKey(key_c)
+            dgroup.qtile.map_keys(key, key_s, key_c)
 
     return func
 
