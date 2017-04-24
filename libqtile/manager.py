@@ -109,7 +109,7 @@ class Qtile(command.CommandObject):
         self.widgetMap = {}
         self.groupMap = {}
         self.groups = []
-        self.keyMap = {}
+        self.key_map = {}
 
         # Find the modifier mask for the numlock key, if there is one:
         nc = self.conn.keysym_to_keycode(xcbq.keysyms["Num_Lock"])
@@ -420,17 +420,17 @@ class Qtile(command.CommandObject):
                 async,
                 async,
             )
-            self.keyMap[(code, mask)] = cfg_key
+            self.key_map[(code, mask)] = cfg_key
 
     def unmapKey(self, key):
         ungrab_key = self.root.ungrab_key
         _tuple = tuple
         for xkey in keymap.x11_keys(self.conn, key):
             t_xkey = _tuple(xkey)
-            if t_xkey not in self.keyMap:
+            if t_xkey not in self.key_map:
                 continue
             ungrab_key(xkey.code, xkey.mask)
-            del(self.keyMap[t_xkey])
+            del(self.key_map[t_xkey])
 
     def update_net_desktops(self):
         try:
@@ -667,7 +667,7 @@ class Qtile(command.CommandObject):
 
     def grabKeys(self):
         self.root.ungrab_key(None, None)
-        keys = set(self.keyMap.values())
+        keys = set(self.key_map.values())
         self.map_keys(*keys)
 
     def get_target_chain(self, ename, e):
@@ -887,7 +887,7 @@ class Qtile(command.CommandObject):
     def handle_KeyPress(self, e):
         code = e.detail
         state = e.state
-        k = self.keyMap.get((code, state))
+        k = self.key_map.get((code, state))
         if not k:
             keysym = self.conn.code_to_syms[code][0]
             logger.info("Ignoring unknown keysym: %s" % keysym)
@@ -1248,7 +1248,7 @@ class Qtile(command.CommandObject):
         result.add(["KeySym", "Mod", "Command", "Desc"])
         result.add([])
         rows = []
-        for (ks, kmm), k in self.keyMap.items():
+        for (ks, kmm), k in self.key_map.items():
             if not k.commands:
                 continue
             name = ", ".join(xcbq.rkeysyms.get(ks, ("<unknown>", )))
