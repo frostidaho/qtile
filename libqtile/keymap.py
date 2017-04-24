@@ -1,5 +1,6 @@
 from collections import namedtuple as _namedtuple
-from libqtile import xcbq
+from . import xcbq
+from . import config as _config
 from six.moves import reduce
 import operator
 
@@ -135,3 +136,22 @@ class _QDrag(Press):
     @property
     def code(self):
         return self.cfg_obj.button_code
+
+
+def x11_buttons(xcbq_conn, *cfg_buttons):
+    _isinstance = isinstance
+    Click = _config.Click
+    QClick = _QClick
+    QDrag = _QDrag
+
+    ignore_modifiers = (
+        ('lock', 'Num_Lock'),
+        ('Num_Lock',),
+    )
+    for cfg_button in cfg_buttons:
+        if _isinstance(cfg_button, Click):
+            qobj = QClick(xcbq_conn, cfg_button)
+        else:
+            qobj = QDrag(xcbq_conn, cfg_button)
+        for x11_input in qobj.get_x11(*ignore_modifiers):
+            yield x11_input
