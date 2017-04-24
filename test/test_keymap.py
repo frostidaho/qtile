@@ -29,7 +29,7 @@ def ex_func(*args, **kwargs):
 @pytest.fixture(scope='function')
 def ex_key(xcbq_conn):
     key = config.Key(['mod4', 'shift'], 't', ex_func)
-    qkey = keymap._QKey(xcbq_conn, key)
+    qkey = keymap._KeyGrabber(xcbq_conn, key)
     return key, qkey
 
 

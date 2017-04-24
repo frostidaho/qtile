@@ -84,7 +84,7 @@ class Press(object):
             yield X11Input(code, new_mask, cfg_obj)
 
 
-class _QKey(Press):
+class _KeyGrabber(Press):
     '''A class used by manager.py
 
     Not intended to be used in your config.py
@@ -92,7 +92,7 @@ class _QKey(Press):
     _X11Input = _X11Key
 
     def __init__(self, conn, cfg_key):
-        super(_QKey, self).__init__(conn, cfg_key)
+        super(_KeyGrabber, self).__init__(conn, cfg_key)
 
         # self.keysym = xcbq.keysyms[cfg_key.key]
         self.keysym = cfg_key.keysym
@@ -105,7 +105,7 @@ class _QKey(Press):
         return self.keycode
 
 def x11_keys(xcbq_conn, *cfg_keys):
-    QKey = _QKey
+    QKey = _KeyGrabber
     ignore_modifiers = (
         ('lock', 'Num_Lock'),
         ('Num_Lock',),
@@ -116,22 +116,22 @@ def x11_keys(xcbq_conn, *cfg_keys):
             yield xkey
 
 
-class _QClick(Press):
+class _ClickGrabber(Press):
     _X11Input = _X11Click
 
     def __init__(self, conn, cfg_click):
-        super(_QClick, self).__init__(conn, cfg_click)
+        super(_ClickGrabber, self).__init__(conn, cfg_click)
 
     @property
     def code(self):
         return self.cfg_obj.button_code
 
 
-class _QDrag(Press):
+class _DragGrabber(Press):
     _X11Input = _X11Drag
 
     def __init__(self, conn, cfg_drag):
-        super(_QDrag, self).__init__(conn, cfg_drag)
+        super(_DragGrabber, self).__init__(conn, cfg_drag)
 
     @property
     def code(self):
@@ -141,8 +141,8 @@ class _QDrag(Press):
 def x11_buttons(xcbq_conn, *cfg_buttons):
     _isinstance = isinstance
     Click = _config.Click
-    QClick = _QClick
-    QDrag = _QDrag
+    QClick = _ClickGrabber
+    QDrag = _DragGrabber
 
     ignore_modifiers = (
         ('lock', 'Num_Lock'),

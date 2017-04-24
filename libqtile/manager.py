@@ -1350,7 +1350,7 @@ class Qtile(command.CommandObject):
             # This return value on QtileError is what is expected by
             # test_manager.py::test_keypress
             return e.args[0]
-        qkey = keymap._QKey(self.conn, cfg_key)
+        qkey = keymap._KeyGrabber(self.conn, cfg_key)
 
         class event(object):
             detail = qkey.keycode
