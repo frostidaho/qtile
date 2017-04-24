@@ -2,6 +2,8 @@ import pytest
 from libqtile import keymap
 from libqtile import config
 from libqtile import xcbq
+from six.moves import reduce
+import operator
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -24,10 +26,15 @@ def xcbq_conn(xdisplay):
 def ex_func(*args, **kwargs):
     pass
 
-def test_qkey_strs_to_masks(xcbq_conn):
+@pytest.fixture(scope='function')
+def ex_key(xcbq_conn):
     key = config.Key(['mod4', 'shift'], 't', ex_func)
     qkey = keymap.QKey(xcbq_conn, key)
+    return key, qkey
 
+
+def test_qkey_strs_to_masks(xcbq_conn, ex_key):
+    key, qkey = ex_key
     d_mods = xcbq.ModMasks
     strs_to_masks = qkey._strs_to_masks
     for key,val in d_mods.items():
@@ -36,13 +43,38 @@ def test_qkey_strs_to_masks(xcbq_conn):
     numlock_mask = next(strs_to_masks(['Num_Lock',]))
     assert numlock_mask == 16 or numlock_mask == 0
 
-
-def test_x11_keys(xcbq_conn):
-    key = config.Key(['mod4', 'shift'], 't', ex_func)
-    qkey = keymap.QKey(xcbq_conn, key)
+def test_x11_keys(xcbq_conn, ex_key):
+    key, qkey = ex_key
 
     for val in qkey.get_x11_keys():
         assert isinstance(val, keymap._X11Key)
         assert val.code == xcbq_conn.keysym_to_keycode(xcbq.keysyms['t'])
         assert val.mask & (64 | 1) == val.mask
+        assert val.cfg_key == key
     
+
+def test_x11_keys_ignore(xcbq_conn, ex_key):
+    key, qkey = ex_key
+    xkeys = list(qkey.get_x11_keys('lock', 'lock'))
+    assert len(xkeys) == 2
+    mm = xcbq.ModMasks
+    assert xkeys[0].mask == mm['mod4'] | mm['shift']
+    assert xkeys[1].mask == mm['mod4'] | mm['shift'] | mm['lock']
+
+def test_x11_keys_numlock(xcbq_conn, ex_key):
+    key, qkey = ex_key
+    xkeys = list(qkey.get_x11_keys('lock', 'lock'))
+    assert len(xkeys) == 2
+    mm = xcbq.ModMasks
+    
+    mods = list(key.modifiers)
+    assert xkeys[0].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
+    mods.append('lock')
+    assert xkeys[1].mask == reduce(operator.or_, (mm[x] for x in mods), 0)
+
+    numlock_mask = next(qkey._strs_to_masks(['Num_Lock',]))
+    if numlock_mask == 16:
+        assert len(xkeys) == 3
+    else:
+        assert len(xkeys) == 2
+
