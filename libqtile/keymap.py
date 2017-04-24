@@ -3,7 +3,7 @@ from libqtile import xcbq
 from six.moves import reduce
 import operator
 
-_X11Key = _namedtuple('_X11Key', ('code', 'mask'))
+_X11Key = _namedtuple('_X11Key', ('code', 'mask', 'cfg_key'))
 
 class _QKey(object):
     '''A class used by manager.py
@@ -55,7 +55,7 @@ class _QKey(object):
         X11Key = _X11Key
         cfg_key = self.cfg_key
 
-        yield X11Key(keycode, modmask)
+        yield X11Key(keycode, modmask, cfg_key)
         seen_masks = {modmask}
         # TODO ignore masks should be some sort of permutation
         # of all of the ignore modifiers
@@ -69,7 +69,7 @@ class _QKey(object):
             if new_mask in seen_masks:
                 continue
             seen_masks.add(new_mask)
-            yield X11Key(keycode, new_mask)
+            yield X11Key(keycode, new_mask, cfg_key)
 
 
 def x11_keys(xcbq_conn, *cfg_keys):
