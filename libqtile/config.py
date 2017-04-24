@@ -61,7 +61,7 @@ class Key(object):
         try:
             self.modmask = utils.translate_masks(self.modifiers)
         except KeyError as v:
-            raise utils.QtileError(v)
+            raise utils.QtileError(v.args[0])
 
     def __repr__(self):
         return "<Key (%s, %s)>" % (self.modifiers, self.key)

@@ -43,7 +43,7 @@ import warnings
 
 from . import asyncio
 
-from .config import Drag, Click, Screen, Match, Rule
+from .config import Drag, Click, Screen, Match, Rule, Key
 from .group import _Group
 from .log_utils import logger
 from .state import QtileState
@@ -1344,21 +1344,18 @@ class Qtile(command.CommandObject):
             simulate_keypress(["control", "mod2"], "k")
         """
         # FIXME: This needs to be done with sendevent, once we have that fixed.
-        keysym = xcbq.keysyms.get(key)
-        if keysym is None:
-            raise command.CommandError(u"Unknown key: {0:s}".format(key))
-        keycode = self.conn.first_sym_to_code[keysym]
-
-        class DummyEv(object):
-            pass
-
-        d = DummyEv()
-        d.detail = keycode
         try:
-            d.state = utils.translate_masks(modifiers)
-        except KeyError as v:
-            return v.args[0]
-        self.handle_KeyPress(d)
+            cfg_key = Key(modifiers, key)
+        except utils.QtileError as e:
+            # This return value on QtileError is what is expected by
+            # test_manager.py::test_keypress
+            return e.args[0]
+        qkey = keymap._QKey(self.conn, cfg_key)
+
+        class event(object):
+            detail = qkey.keycode
+            state = qkey.modmask
+        self.handle_KeyPress(event)
 
     def cmd_execute(self, cmd, args):
         """Executes the specified command, replacing the current process"""
