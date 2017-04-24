@@ -5,8 +5,50 @@ import operator
 
 _X11Key = _namedtuple('_X11Key', ('code', 'mask', 'cfg_key'))
 
+class Press(object):
+    _mask_cache = {}
+    def _strs_to_masks(self, modifiers):
+        d_keysyms = xcbq.keysyms
+        d_modmasks = xcbq.ModMasks
+        cache = self._mask_cache
+        keysym_to_keycode = self.conn.keysym_to_keycode
+        reverse_modmap = self.conn.reverse_modmap
 
-class _QKey(object):
+        for mod in modifiers:
+            try:
+                yield cache[mod]
+                continue
+            except KeyError:
+                pass
+
+            try:
+                val = d_modmasks[mod]
+                yield val
+                cache[mod] = val
+                continue
+            except KeyError:
+                pass
+
+            _keysym = d_keysyms[mod]
+            _keycode = keysym_to_keycode(_keysym)
+            _name = reverse_modmap[_keycode]
+            if _name:
+                val = d_modmasks[_name[0]]
+            else:
+                val = 0
+            yield val
+            cache[mod] = val
+
+    def mods_to_mask(self, *modifiers):
+        or_ = operator.or_
+        to_masks = self._strs_to_masks
+        try:
+            return reduce(or_, to_masks(modifiers))
+        except TypeError:
+            return 0
+
+
+class _QKey(Press):
     '''A class used by manager.py
 
     Not intended to be used in your config.py
@@ -21,31 +63,6 @@ class _QKey(object):
         self.keycode = conn.keysym_to_keycode(self.keysym)
         self.modmask = cfg_key.modmask
         # self.modmask = self.mods_to_mask(*cfg_key.modifiers)
-
-    def _strs_to_masks(self, modifiers):
-        d_keysyms = xcbq.keysyms
-        d_modmasks = xcbq.ModMasks
-        keysym_to_keycode = self.conn.keysym_to_keycode
-        reverse_modmap = self.conn.reverse_modmap
-        for mod in modifiers:
-            try:
-                yield d_modmasks[mod]
-            except KeyError:
-                _keysym = d_keysyms[mod]
-                _keycode = keysym_to_keycode(_keysym)
-                _name = reverse_modmap[_keycode]
-                if _name:
-                    yield d_modmasks[_name[0]]
-                else:
-                    yield 0
-
-    def mods_to_mask(self, *modifiers):
-        or_ = operator.or_
-        to_masks = self._strs_to_masks
-        try:
-            return reduce(or_, to_masks(modifiers))
-        except TypeError:
-            return 0
 
     def get_x11_keys(self, *ignore_modifiers):
         keycode = self.keycode
