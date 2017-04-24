@@ -72,4 +72,14 @@ class _QKey(object):
             yield X11Key(keycode, new_mask)
 
 
+def x11_keys(xcbq_conn, *cfg_keys):
+    QKey = _QKey
+    ignore_modifiers = (
+        ('lock', 'Num_Lock'),
+        ('Num_Lock',),
+    )
+    for cfg_key in cfg_keys:
+        qkey = QKey(xcbq_conn, cfg_key)
+        for xkey in qkey.get_x11_keys(*ignore_modifiers):
+            yield xkey
 
