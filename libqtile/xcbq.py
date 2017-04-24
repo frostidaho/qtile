@@ -36,7 +36,6 @@
 """
 from __future__ import print_function, division
 from collections import defaultdict as _defaultdict
-from itertools import repeat as _repeat
 import six
 
 from xcffib.xproto import CW, WindowClass, EventMask
