@@ -213,15 +213,17 @@ class Drawer(object):
     starting at offset 0, 0, and when the time comes to display to the window,
     we copy the appropriate portion of the pixmap onto the window.
     """
-    def __init__(self, qtile, wid, width, height):
+    def __init__(self, qtile, wid, width, height, desired_depth=32):
         self.qtile = qtile
         self.wid, self.width, self.height = wid, width, height
 
         self.pixmap = self.qtile.conn.conn.generate_id()
         self.gc = self.qtile.conn.conn.generate_id()
 
+        self.desired_depth = desired_depth
+        scr_info = self.qtile.conn.default_screen.depth_to_visual[self.desired_depth]
         self.qtile.conn.conn.core.CreatePixmap(
-            self.qtile.conn.default_screen.root_depth,
+            scr_info.depth,
             self.pixmap,
             self.wid,
             self.width,
@@ -305,20 +307,28 @@ class Drawer(object):
         height :
             the Y portion of the canvas to draw at the starting point.
         """
-        self.qtile.conn.conn.core.CopyArea(
-            self.pixmap,
-            self.wid,
-            self.gc,
-            0, 0,  # srcx, srcy
-            offsetx, offsety,  # dstx, dsty
-            self.width if width is None else width,
-            self.height if height is None else height
-        )
+        try:
+            self.qtile.conn.conn.core.CopyArea(
+                self.pixmap,
+                self.wid,
+                self.gc,
+                0, 0,  # srcx, srcy
+                offsetx, offsety,  # dstx, dsty
+                self.width if width is None else width,
+                self.height if height is None else height,
+                is_checked=True
+            ).check()
+        except:
+            from libqtile.log_utils import logger
+            logger.exception("Error in Drawer.draw")
+            raise
 
     def find_root_visual(self):
+        scr_info = self.qtile.conn.default_screen.depth_to_visual[self.desired_depth]
+        actual_visual_id = scr_info.visual_id
         for i in self.qtile.conn.default_screen.allowed_depths:
             for v in i.visuals:
-                if v.visual_id == self.qtile.conn.default_screen.root_visual:
+                if v.visual_id == actual_visual_id:
                     return v
 
     def new_ctx(self):
@@ -346,6 +356,10 @@ class Drawer(object):
             self.ctx.set_source_rgba(*utils.rgb(colour))
 
     def clear(self, colour):
+        self.ctx.set_operator(cairocffi.OPERATOR_CLEAR)
+        self.ctx.paint()
+        self.ctx.set_operator(cairocffi.OPERATOR_OVER)
+        # logger.warning('drawer clear color: {}'.format(color))
         self.set_source_rgb(colour)
         self.ctx.rectangle(0, 0, self.width, self.height)
         self.ctx.fill()

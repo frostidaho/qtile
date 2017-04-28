@@ -524,6 +524,8 @@ class Qtile(command.CommandObject):
 
     @utils.lru_cache()
     def colorPixel(self, name):
+        # FIXME - this is a quick hack for colors with opacity
+        name = name.rsplit('.', 1)[0]
         return self.conn.screens[0].default_colormap.alloc_color(name).pixel
 
     @property
@@ -744,6 +746,11 @@ class Qtile(command.CommandObject):
                         r = h(e)
                         if not r:
                             break
+
+            except xcffib.xproto.MatchError:
+                msg = 'xcffib.xproto.MatchError in qtile._xpoll() {!r}'
+                logger.exception(msg.format(e))
+
             # Catch some bad X exceptions. Since X is event based, race
             # conditions can occur almost anywhere in the code. For
             # example, if a window is created and then immediately

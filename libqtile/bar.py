@@ -18,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from __future__ import division
-
+from collections import namedtuple
 from . import command
 from . import confreader
-from . import drawer
 from . import configurable
-from . import window
+from .drawer import Drawer as _Drawer
+from .window import Internal as _Internal
 
 
 class Gap(command.CommandObject):
@@ -138,6 +138,7 @@ class Obj(object):
 STRETCH = Obj("STRETCH")
 CALCULATED = Obj("CALCULATED")
 STATIC = Obj("STATIC")
+_BarParts = namedtuple('_BarParts', ('window', 'drawer', 'depth'))
 
 
 class Bar(Gap, configurable.Configurable):
@@ -154,6 +155,7 @@ class Bar(Gap, configurable.Configurable):
     defaults = [
         ("background", "#000000", "Background colour."),
         ("opacity", 1, "Bar window opacity."),
+        ("depth", 32, "Bar window color depth."),
     ]
 
     def __init__(self, widgets, size, **config):
@@ -164,9 +166,50 @@ class Bar(Gap, configurable.Configurable):
         self.saved_focus = None
 
         self.queued_draws = 0
+        self.windows = {}
+        self.drawers = {}
+
+    def init_drawer(self, depth):
+        try:
+            return _BarParts(self.windows[depth], self.drawers[depth], depth)
+        except KeyError:
+            iwin = _Internal.create(
+                self.qtile,
+                self.x, self.y, self.width, self.height,
+                opacity=self.opacity,
+                desired_depth=depth,
+            )
+
+            idrawer = _Drawer(
+                self.qtile,
+                iwin.window.wid,
+                self.width,
+                self.height,
+                desired_depth=depth,
+            )
+            idrawer.clear(self.background)
+            self.windows[depth] = iwin
+            self.drawers[depth] = idrawer
+            return _BarParts(iwin, idrawer, depth)
+
+    @property
+    def window(self):
+        try:
+            return self.windows[self.depth]
+        except KeyError:
+            return self.init_drawer(self.depth)[0]
+
+    @property
+    def drawer(self):
+        try:
+            return self.drawers[self.depth]
+        except KeyError:
+            return self.init_drawer(self.depth)[1]
 
     def _configure(self, qtile, screen):
         Gap._configure(self, qtile, screen)
+        from libqtile.log_utils import logger
+        self._logger = logger
 
         stretches = 0
         for w in self.widgets:
@@ -180,20 +223,6 @@ class Bar(Gap, configurable.Configurable):
         if stretches > 1:
             raise confreader.ConfigError("Only one STRETCH widget allowed!")
 
-        self.window = window.Internal.create(
-            self.qtile,
-            self.x, self.y, self.width, self.height,
-            self.opacity
-        )
-
-        self.drawer = drawer.Drawer(
-            self.qtile,
-            self.window.window.wid,
-            self.width,
-            self.height
-        )
-        self.drawer.clear(self.background)
-
         self.window.handle_Expose = self.handle_Expose
         self.window.handle_ButtonPress = self.handle_ButtonPress
         self.window.handle_ButtonRelease = self.handle_ButtonRelease
@@ -201,12 +230,19 @@ class Bar(Gap, configurable.Configurable):
         self.window.unhide()
 
         for i in self.widgets:
-            qtile.registerWidget(i)
-            i._configure(qtile, self)
+            try:
+                i._configure(qtile, self)
+                qtile.registerWidget(i)
+            except:
+                msg = "Couldn't configure widget {!r}".format(i)
+                self._logger.exception(msg)
+                raise
+
         self._resize(self.length, self.widgets)
 
     def finalize(self):
-        self.drawer.finalize()
+        for drawer in self.drawers.values():
+            drawer.finalize()
 
     def _resize(self, length, widgets):
         stretches = [i for i in widgets if i.length_type == STRETCH]
@@ -291,7 +327,11 @@ class Bar(Gap, configurable.Configurable):
         self.queued_draws = 0
         self._resize(self.length, self.widgets)
         for i in self.widgets:
-            i.draw()
+            try:
+                i.draw()
+            except:
+                self._logger.exception("Can't draw widget {!r}".format(i))
+                raise
         if self.widgets:
             end = i.offset + i.length
             if end < self.length:
