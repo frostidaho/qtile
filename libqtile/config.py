@@ -38,7 +38,7 @@ import warnings
 def _get_valid_mask(display=_os.environ.get('DISPLAY', '')):
     try:
         conn = xcbq.Connection(display)
-    except Exception: # hack for building sphinx documentation
+    except Exception:  # hack for building sphinx documentation
         # Should be xcffib.ConnectionException, but sphinx
         # won't build with this exception
         return -19
@@ -118,7 +118,7 @@ class KeyMap(_UserList):
         libqtile.manager.Qtile.keyMap
         """
         return {
-            (key.keysym, key.modmask & valid_mask):key for key in self.data
+            (key.keysym, key.modmask & valid_mask): key for key in self.data
         }
 
 
