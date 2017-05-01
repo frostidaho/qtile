@@ -1,6 +1,5 @@
-# Copyright (c) 2014 Sean Vig
-# Copyright (c) 2014 Florian Scherf
-# Copyright (c) 2014 Tycho Andersen
+#!/usr/bin/env python
+# Copyright (c) 2017 Dario Giovannetti
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,21 +18,26 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""
+This script allows creating customized windows using the Tk toolkit.
+"""
+import sys
+try:
+    # Python 3
+    import tkinter
+except ImportError:
+    # Python 2
+    import Tkinter as tkinter
 
-# https://bitbucket.org/tarek/flake8/issue/141/improve-flake8-statement-to-ignore
-# is annoying, so we ignore libqtile/layout/__init__.py completely
-# flake8: noqa
 
-from .columns import Columns
-from .floating import Floating
-from .matrix import Matrix
-from .max import Max
-from .ratiotile import RatioTile
-from .slice import Slice
-from .stack import Stack
-from .tile import Tile
-from .tree import TreeTab
-from .verticaltile import VerticalTile
-from .wmii import Wmii
-from .xmonad import MonadTall, MonadWide
-from .zoomy import Zoomy
+class Window(object):
+    def __init__(self, title, wm_type):
+        self.win = tkinter.Tk()
+        self.win.title(title)
+        self.win.call("wm", "attributes", ".", "-type", wm_type)
+
+
+if __name__ == '__main__':
+    title, wm_type = sys.argv[1:]
+    Window(title, wm_type)
+    tkinter.mainloop()

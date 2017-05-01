@@ -234,7 +234,7 @@ class Qtile(object):
 
         def run_qtile():
             try:
-                init_log(logging.INFO, log_path=None)
+                init_log(logging.INFO, log_path=None, log_color=False)
                 q = QtileManager(config_class(), self.display, self.sockfile)
                 q.loop()
             except Exception:
@@ -259,7 +259,7 @@ class Qtile(object):
         an error and the returned manager should not be started, otherwise this
         will likely block the thread.
         """
-        init_log(logging.INFO, log_path=None)
+        init_log(logging.INFO, log_path=None, log_color=False)
         return QtileManager(config_class(), self.display, self.sockfile)
 
     def terminate(self):
@@ -316,6 +316,13 @@ class Qtile(object):
             raise AssertionError("Window never appeared...")
         return proc
 
+    def _spawn_script(self, script, *args):
+        python = sys.executable
+        d = os.path.dirname(os.path.realpath(__file__))
+        python = sys.executable
+        path = os.path.join(d, "scripts", script)
+        return self._spawn_window(python, path, *args)
+
     def kill_window(self, proc):
         """Kill a window and check that qtile unmaps it
 
@@ -337,11 +344,24 @@ class Qtile(object):
             raise AssertionError("Window could not be killed...")
 
     def testWindow(self, name):
-        python = sys.executable
-        d = os.path.dirname(os.path.realpath(__file__))
-        python = sys.executable
-        path = os.path.join(d, "scripts", "window.py")
-        return self._spawn_window(python, path, self.display, name)
+        return self._spawn_script("window.py", self.display, name)
+
+    def testTkWindow(self, name, wm_type):
+        return self._spawn_script("tkwindow.py", name, wm_type)
+
+    def testDialog(self, name="dialog"):
+        return self.testTkWindow(name, "dialog")
+
+    def testNotification(self, name="notification"):
+        """
+        Simulate a notification window. Note that, for testing purposes, this
+        process must be killed explicitly, unlike actual notifications which
+        are sent to a notification server and then expire after a timeout.
+        """
+        # Don't use a real notification, e.g. notify-send or
+        # zenity --notification, since we want to keep the process on until
+        # explicitly killed
+        return self.testTkWindow(name, "notification")
 
     def testXclock(self):
         path = whereis("xclock")
