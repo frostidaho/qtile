@@ -697,7 +697,7 @@ class Qtile(command.CommandObject):
             # the param remove_others, or the method as_dict()
             remove_others = True
             new_key_map = {
-                (key.keysym, key.modmask & valid_mask):key for key in keymap
+                (key.keysym, key.modmask & valid_mask): key for key in keymap
             }
         if remove_others:
             self.keyMap = new_key_map
