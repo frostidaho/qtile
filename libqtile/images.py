@@ -15,6 +15,7 @@ from collections import namedtuple, defaultdict
 
 from .log_utils import logger
 
+
 class CairoImageSurface(object):
     """CairoImageSurface is a namespace for functions which convert images to cairo surfs
 
@@ -32,6 +33,7 @@ class CairoImageSurface(object):
 
     try:
         cairosvg = __import__('cairosvg')
+
         @classmethod
         def from_svg(cls, bytes_svg, width=None, height=None, dpi=200, **kwargs):
             """from_svg converts the data from a svg file to a cairo ImageSurface.
@@ -58,13 +60,14 @@ class CairoImageSurface(object):
 
     @classmethod
     def get_backends(cls):
-        backends =  (x for x in dir(cls) if x.startswith('from_'))
-        return {re.split('^from_', x, maxsplit=1)[-1]:getattr(cls, x)
+        backends = (x for x in dir(cls) if x.startswith('from_'))
+        return {re.split('^from_', x, maxsplit=1)[-1]: getattr(cls, x)
                 for x in backends}
 
 
 class BackendError(Exception):
     pass
+
 
 def path_to_image_surface(path, **kwargs):
     """Return a cairocffi.ImageSurface corresponding to the image at path
@@ -109,7 +112,7 @@ def get_matching_files(dirpath, names, explicit_filetype=False):
                 yield d
 
     names = tuple(names)
-    pat_str = '(?P<name>' + '|'.join(map(re.escape, names)) +')'
+    pat_str = '(?P<name>' + '|'.join(map(re.escape, names)) + ')'
     if explicit_filetype:
         pat_str += '$'
     else:
@@ -118,7 +121,7 @@ def get_matching_files(dirpath, names, explicit_filetype=False):
 
     d_total = defaultdict(list)
     for d_match in match_files_in_dir(dirpath, regex_pattern):
-        name, directory  = d_match['name'], d_match['directory']
+        name, directory = d_match['name'], d_match['directory']
         try:
             suffix = d_match['suffix']
             filename = '.'.join((name, suffix))
@@ -128,6 +131,8 @@ def get_matching_files(dirpath, names, explicit_filetype=False):
     return d_total
 
 LoadedImg = namedtuple('LoadedImg', 'success name path surface pattern width height')
+
+
 class Loader(object):
     """Loader - create cairo surfaces from image files & icons
 
@@ -139,6 +144,7 @@ class Loader(object):
     >>> ldr = Loader(['/usr/share/icons/Adwaita/24x24', '/usr/share/icons/Adwaita'])
     >>> loaded_images = ldr.icons(['audio-volume-muted', 'audio-volume-low'])
     """
+
     def __init__(self, icon_dirs=(), width=None, height=None):
         """Create an instance of Loader
 
@@ -162,7 +168,6 @@ class Loader(object):
         width = width if width is not None else self.width
         height = height if height is not None else self.height
 
-        total = []
         if not image_path:
             logger.warning("Can't load image with no given path, name=%r", name)
             return LoadedImg(
@@ -187,7 +192,11 @@ class Loader(object):
                 height=height,
             )
         except BackendError:
-            logger.warning("Can't load image with current backends, path=%r, name=%r", image_path, name)
+            logger.warning(
+                "Can't load image with current backends, path=%r, name=%r",
+                image_path,
+                name,
+            )
             success, surface = False, None
         except (OSError, IOError):
             logger.warning("Couldn't open image at path=%r, name=%r", image_path, name)
@@ -260,7 +269,7 @@ class Loader(object):
         mfiles = get_matching_files(self.icon_dirs[0], names, explicit_filetype=False)
         for dpath in self.icon_dirs[1:]:
             mfiles2 = get_matching_files(dpath, names, explicit_filetype=False)
-            for k,v in mfiles2.items():
+            for k, v in mfiles2.items():
                 mfiles[k].extend(v)
         total = []
         for name in names:
@@ -279,4 +288,3 @@ class Loader(object):
                 yield path
             else:
                 logger.info('No backend found for %r', path)
-

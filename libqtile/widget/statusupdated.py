@@ -1,4 +1,3 @@
-import sys
 from .. import hook, configurable, bar, log_utils
 from . import textbox, base
 
@@ -74,7 +73,7 @@ class _StatusUpdatedMixin(object):
         try:
             self.status_update(*pargs, **kwargs)
         except:
-            logger.exception('status_update failed: {}'.format(' '.join(lines)))
+            logger.exception('status_update failed')
             raise
 
     def status_call_poller(self):

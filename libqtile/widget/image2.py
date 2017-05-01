@@ -1,7 +1,6 @@
 from __future__ import division
 from . import base
 from .. import bar
-from .. import images
 
 
 class Image2(base._Widget, base.MarginMixin):
