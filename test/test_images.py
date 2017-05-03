@@ -22,6 +22,16 @@ def path_n_bytes_image(request):
         bobj = fobj.read()
     return fpath, bobj
 
+@pytest.fixture(
+    scope='function',
+    params=PNGS,
+)
+def path_n_bytes_image_pngs(request):
+    fpath = request.param
+    with open(fpath, 'rb') as fobj:
+        bobj = fobj.read()
+    return fpath, bobj
+
 @pytest.fixture(scope='function')
 def png_img():
     return images.Img.from_path(PNGS[0])
@@ -109,8 +119,8 @@ class TestImg(object):
         img = images.Img(bytes_image)
         assert isinstance(img.pattern, cairocffi.SurfacePattern)
 
-    def test_pattern_resize(self, path_n_bytes_image):
-        path, bytes_image = path_n_bytes_image
+    def test_pattern_resize(self, path_n_bytes_image_pngs):
+        path, bytes_image = path_n_bytes_image_pngs
         img = images.Img.from_path(path)
         assert isinstance(img.pattern, cairocffi.SurfacePattern)
         t_matrix = img.pattern.get_matrix().as_tuple()

@@ -8,15 +8,27 @@ from collections import namedtuple as _namedtuple
 class LoadingError(Exception):
     pass
 
+def _decode_to_image_surface(bytes_img, width=None, height=None):
+    try:
+        surf, fmt = cairocffi.pixbuf.decode_to_image_surface(bytes_img, width, height)
+        return _SurfaceInfo(surf, fmt)
+    except TypeError:
+        from .log_utils import logger
+        logger.exception("Couldn't set cairo image surface width and height")
+        # need to use cairocffi patch to set width and height
+        # https://github.com/frostidaho/cairocffi/tree/pixbuf_size
+        surf, fmt = cairocffi.pixbuf.decode_to_image_surface(bytes_img)
+        return _SurfaceInfo(surf, fmt)
+
 _SurfaceInfo = _namedtuple('_SurfaceInfo', ('surface', 'file_type'))
-def get_cairo_surface(bytes_img):
+def get_cairo_surface(bytes_img, width=None, height=None):
     try:
         surf = cairocffi.ImageSurface.create_from_png(io.BytesIO(bytes_img))
         return _SurfaceInfo(surf, 'png')
     except (MemoryError, OSError):
         pass
     try:
-        surf, fmt = cairocffi.pixbuf.decode_to_image_surface(bytes_img)
+        surf, fmt = _decode_to_image_surface(bytes_img, width, height)
         return _SurfaceInfo(surf, fmt)
     except cairocffi.pixbuf.ImageLoadingError:
         pass
@@ -79,6 +91,10 @@ class Img(object):
         self.name = name
         self.path = path
 
+    def _reset(self):
+        del self.surface
+        del self.pattern
+
     @classmethod
     def from_path(cls, image_path):
         "Create an Img instance from image_path"
@@ -102,15 +118,19 @@ class Img(object):
         try:
             return self._surface
         except AttributeError:
-            surf, fmt = get_cairo_surface(self.bytes_img)
+            width = getattr(self, '_width', None)
+            height = getattr(self, '_height', None)
+            surf, fmt = get_cairo_surface(self.bytes_img, width, height)
             self._surface = surf
             self._file_type = fmt
             return surf
 
     @surface.deleter
     def surface(self):
-        del self._surface
-        del self.pattern
+        try:
+            del self._surface
+        except AttributeError:
+            pass
 
     @property
     def theta(self):
@@ -122,12 +142,12 @@ class Img(object):
     @theta.setter
     def theta(self, value):
         self._theta = float(value)
-        del self.pattern
+        self._reset()
 
     @theta.deleter
     def theta(self):
         del self._theta
-        del self.pattern
+        self._reset()
 
     @property
     def width(self):
@@ -143,12 +163,12 @@ class Img(object):
             height0, width0 = self.height, self.width
             self._height = int(height0 * new_width / width0)
         self._width = new_width
-        del self.pattern
+        self._reset()
 
     @width.deleter
     def width(self):
         del self._width
-        del self.pattern
+        self._reset()
 
     @property
     def height(self):
@@ -164,12 +184,12 @@ class Img(object):
             height0, width0 = self.height, self.width
             self._width = int(width0 * new_height / height0)
         self._height = new_height
-        del self.pattern
+        self._reset()
 
     @height.deleter
     def height(self):
         del self._height
-        del self.pattern
+        self._reset()
 
     @property
     def pattern(self):
