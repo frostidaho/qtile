@@ -60,9 +60,7 @@ class TestImg(object):
         path, bytes_image = path_n_bytes_image
         img = images.Img(bytes_image)
         ftype = path.split('.')[-1].lower()
-        assert img.file_type == ftype
         assert isinstance(img.surface, cairocffi.ImageSurface)
-        assert img.file_type == ftype
         del img.surface
         assert isinstance(img.surface, cairocffi.ImageSurface)
 
@@ -79,7 +77,7 @@ class TestImg(object):
 
     def test_setting(self, png_img):
         img = png_img
-        width0, height0 = img.width, img.height
+        width0, height0 = img.default_size
         pat0 = img.pattern
         img.width = width0 + 3
         assert pat0 != img.pattern
@@ -97,28 +95,12 @@ class TestImg(object):
         assert img.theta == pytest.approx(-35.0)
 
     def test_equality(self, png_img):
-        width0, height0 = png_img.width, png_img.height
+        width0, height0 = png_img.default_size
         png_img2 = images.Img.from_path(png_img.path)
         assert png_img == png_img2
         png_img.width = width0 * 2
         png_img2.height = width0 * 2
         assert png_img != png_img2
-
-    def test_setting_lock_aspect(self, png_img):
-        img = png_img
-        width0, height0 = img.width, img.height
-        ratio = width0 / height0
-        img.lock_aspect_ratio = True
-        img.width = 4 * width0
-        assert img.width == (4 * width0)
-        assert (img.width / img.height) == pytest.approx(ratio)
-        img.height = height0
-        assert img.height == height0
-        assert img.width == width0
-        img.lock_aspect_ratio = False
-        img.width = 5 * width0
-        assert img.width == (5 * width0)
-        assert img.height == height0
 
     def test_setting_negative_size(self, png_img):
         png_img.width = -90
@@ -137,10 +119,10 @@ class TestImg(object):
         assert isinstance(img.pattern, cairocffi.SurfacePattern)
         t_matrix = img.pattern.get_matrix().as_tuple()
         assert_approx_equal(t_matrix, (1.0, 0.0, 0.0, 1.0))
-        img.width *= 2.0
+        img.width = 2.0 * img.default_size.width
         t_matrix = img.pattern.get_matrix().as_tuple()
         assert_approx_equal(t_matrix, (0.5, 0.0, 0.0, 1.0))
-        img.height = 3.0 * img.height
+        img.height = 3.0 * img.default_size.height
         t_matrix = img.pattern.get_matrix().as_tuple()
         assert_approx_equal(t_matrix, (0.5, 0.0, 0.0, 1.0/3.0))
 
