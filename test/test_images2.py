@@ -33,10 +33,8 @@ def should_skip():
         actual_version = get_imagemagick_version()
     except AssertionError:
         return True
-    for minval, actual in zip(min_version, actual_version):
-        if actual < minval:
-            return True
-    return False
+    actual_version = tuple(actual_version[:2])
+    return actual_version < min_version
 
 pytestmark = pytest.mark.skipif(should_skip(), reason="recent version of imagemagick not found")
 
