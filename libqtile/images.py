@@ -53,7 +53,7 @@ def get_cairo_surface(bytes_img, width=None, height=None):
         pass
     raise LoadingError("Couldn't load image!")
 
-def get_cairo_pattern(surface, width, height, theta=0.0):
+def get_cairo_pattern(surface, width=None, height=None, theta=0.0):
     """Return a SurfacePattern from an ImageSurface.
 
     if width and height are not None scale the pattern
@@ -61,27 +61,22 @@ def get_cairo_pattern(surface, width, height, theta=0.0):
 
     theta is in degrees ccw
     """
-    EPSILON = 1.0e-6
-    from math import pi
-
-    if surface is None:
-        return None
     pattern = cairocffi.SurfacePattern(surface)
     pattern.set_filter(cairocffi.FILTER_BEST)
     matrix = cairocffi.Matrix()
-    # TODO cleanup this function
-    tr_width, tr_height = None, None
-    if (width is not None) and (width != surface.get_width()):
-        tr_width = surface.get_width() / width
-    if (height is not None) and (height != surface.get_height()):
-        tr_height = surface.get_height() / height
-    if (tr_width is not None) or (tr_height is not None):
-        tr_width = tr_width if tr_width is not None else 1.0
-        tr_height = tr_height if tr_height is not None else 1.0
-        matrix.scale(tr_width, tr_height)
 
+    tr_width, tr_height = 1.0, 1.0
+    surf_width, surf_height = surface.get_width(), surface.get_height()
+    if (width is not None) and (width != surf_width):
+        tr_width = surf_width / width
+    if (height is not None) and (height != surf_height):
+        tr_height = surf_height / height
+    matrix.scale(tr_width, tr_height)
+
+    EPSILON = 1.0e-6
+    PI = 3.141592653589793
     if abs(theta) > EPSILON:
-        theta_rad = pi / 180.0 * theta
+        theta_rad = PI / 180.0 * theta
         mat_rot = cairocffi.Matrix.init_rotate(-theta_rad)
         matrix = mat_rot.multiply(matrix)
 
