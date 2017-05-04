@@ -125,11 +125,8 @@ class Img(object):
     - height :: pattern height in pixels
     - theta :: rotation of pattern counter clockwise in degrees
     Pattern is first stretched, then rotated.
-
-    - lock_aspect_ratio :: maintain aspect ratio when changing height or width
     """
-    def __init__(self, bytes_img, name='', path='', lock_aspect_ratio=False):
-        self.lock_aspect_ratio = lock_aspect_ratio
+    def __init__(self, bytes_img, name='', path=''):
         self.bytes_img = bytes_img
         self.name = name
         self.path = path
@@ -174,6 +171,38 @@ class Img(object):
     theta = _Rotation('theta', default=0.0)
     width = _PixelSize('width')
     height = _PixelSize('height')
+
+    def scale(self, width_factor=None, height_factor=None, lock_aspect_ratio=False):
+        if lock_aspect_ratio:
+            self._scale_lock(width_factor, height_factor, self.default_size)
+        else:
+            self._scale_free(width_factor, height_factor, self.default_size)
+
+    @staticmethod
+    def _scale_lock(width_factor, height_factor, initial_size):
+        if width_factor and height_factor:
+            raise ValueError(
+                "Can't rescale with locked aspect ratio "
+                "and give width_factor and height_factor."
+                " {}, {}".format(width_factor, height_factor)
+            )
+        if not (width_factor or height_factor):
+            raise ValueError('You must supply width_factor or height_factor')
+        width0, height0 = initial_size
+        if width_factor:
+            width = width0 * width_factor
+            height = height0 / width0 * width
+        else:
+            height = height0 * height_factor
+            width = width0 / height0 * height
+        return _ImgSize(width, height)
+
+    @staticmethod
+    def _scale_free(width_factor, height_factor, initial_size):
+        if not (width_factor and height_factor):
+            raise ValueError('You must supply width_factor and height_factor')
+        width0, height0 = initial_size
+        return _ImgSize(width0 * width_factor, height0 * height_factor)
 
     @property
     def surface(self):
