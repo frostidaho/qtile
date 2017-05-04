@@ -7,6 +7,30 @@ from collections import namedtuple
 from os import path
 from glob import glob
 
+def get_imagemagick_version():
+    p = sp.Popen(['convert', '-version'], stdout=sp.PIPE, stderr=sp.PIPE)
+    stdout, stderr = p.communicate()
+    lines = stdout.decode().splitlines()
+    ver_line = [x for x in lines if x.startswith('Version:')]
+    assert len(ver_line) == 1
+    version = ver_line[0].split()[2]
+    version = version.replace('-', '.')
+    vals = version.split('.')
+    return [int(x) for x in vals]
+
+def should_skip():
+    min_version = (6, 9)        # minimum imagemagick version
+    try:
+        actual_version = get_imagemagick_version()
+    except AssertionError:
+        return True
+    for minval, actual in zip(min_version, actual_version):
+        if actual < minval:
+            return True
+    return False
+
+pytestmark = pytest.mark.skipif(should_skip(), reason="recent version of imagemagick not found")
+
 TEST_DIR = path.dirname(path.abspath(__file__))
 DATA_DIR = path.join(TEST_DIR, 'data')
 PNGS = glob(path.join(DATA_DIR, '*', '*.png'))
