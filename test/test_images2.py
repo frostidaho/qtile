@@ -1,3 +1,11 @@
+"""
+test_images2.py tests libqtile.images.Img for rendering quality
+by comparing known good and bad images to images rendered using
+Img().
+
+Image similarity / distance is calculated using imagemagick's convert
+utility.
+"""
 from __future__ import division
 import pytest
 import libqtile.images as images
@@ -33,7 +41,7 @@ pytestmark = pytest.mark.skipif(should_skip(), reason="recent version of imagema
 
 TEST_DIR = path.dirname(path.abspath(__file__))
 DATA_DIR = path.join(TEST_DIR, 'data')
-PNGS = glob(path.join(DATA_DIR, '*', '*.png'))
+# PNGS = glob(path.join(DATA_DIR, '*', '*.png'))
 SVGS = glob(path.join(DATA_DIR, '*', '*.svg'))
 ALL_IMAGES = glob(path.join(DATA_DIR, '*', '*'))
 metrics = ('AE', 'FUZZ', 'MAE', 'MEPP', 'MSE', 'PAE', 'PHASH', 'PSNR', 'RMSE')
@@ -91,7 +99,7 @@ def distortion_bad(svg_img, comparison_images):
     name = svg_img.name
     return compare_images_all_metrics(path_bad, path_good)
 
-def assert_distortion_less_than(distortion, bad_distortion, factor=0.9):
+def assert_distortion_less_than(distortion, bad_distortion, factor=0.3):
     for test_val, bad_val in zip(distortion, bad_distortion):
         assert test_val < (bad_val * factor)
 
