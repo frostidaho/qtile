@@ -220,6 +220,6 @@ class Img(object):
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
-        s0 = set((self.bytes_img, self.theta, self.width, self.height))
-        s1 = set((other.bytes_img, other.theta, other.width, other.height))
+        s0 = (self.bytes_img, self.theta, self.width, self.height)
+        s1 = (other.bytes_img, other.theta, other.width, other.height)
         return s0 == s1

@@ -96,6 +96,14 @@ class TestImg(object):
         assert img.pattern != pat2
         assert img.theta == pytest.approx(-35.0)
 
+    def test_equality(self, png_img):
+        width0, height0 = png_img.width, png_img.height
+        png_img2 = images.Img.from_path(png_img.path)
+        assert png_img == png_img2
+        png_img.width = width0 * 2
+        png_img2.height = width0 * 2
+        assert png_img != png_img2
+
     def test_setting_lock_aspect(self, png_img):
         img = png_img
         width0, height0 = img.width, img.height
