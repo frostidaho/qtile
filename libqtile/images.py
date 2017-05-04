@@ -226,7 +226,6 @@ class Img(object):
         except AttributeError:
             pass
 
-
     @property
     def pattern(self):
         try:
