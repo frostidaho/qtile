@@ -111,11 +111,8 @@ def test_svg_scaling(svg_img, distortion_bad, comparison_images, tmpdir):
     print(tmpdir.dirpath())
     dpath = tmpdir.dirpath
 
-    width, height = svg_img.width, svg_img.height
     name = svg_img.name
-    svg_img.lock_aspect_ratio = True
-    width *= scaling_factor
-    svg_img.width = width
+    svg_img.scale(width_factor=20, lock_aspect_ratio=True)
     surf = cairocffi.SVGSurface(str(dpath(name+'.svg')), svg_img.width, svg_img.height)
     ctx = cairocffi.Context(surf)
 
