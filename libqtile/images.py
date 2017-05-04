@@ -3,7 +3,7 @@ import cairocffi
 import cairocffi.pixbuf
 import io
 import os
-from collections import namedtuple as _namedtuple
+from collections import namedtuple
 
 class LoadingError(Exception):
     pass
@@ -20,7 +20,7 @@ def _decode_to_image_surface(bytes_img, width=None, height=None):
         surf, fmt = cairocffi.pixbuf.decode_to_image_surface(bytes_img)
         return _SurfaceInfo(surf, fmt)
 
-_SurfaceInfo = _namedtuple('_SurfaceInfo', ('surface', 'file_type'))
+_SurfaceInfo = namedtuple('_SurfaceInfo', ('surface', 'file_type'))
 def get_cairo_surface(bytes_img, width=None, height=None):
     try:
         surf = cairocffi.ImageSurface.create_from_png(io.BytesIO(bytes_img))
@@ -69,6 +69,49 @@ def get_cairo_pattern(surface, width, height, theta=0.0):
     pattern.set_matrix(matrix)
     return pattern
 
+class _Descriptor(object):
+    def __init__(self, name=None, default=None, **opts):
+        self.name = name
+        self.under_name = '_' + name
+        self.default = default
+        for key, value in opts.items():
+            setattr(self, key, value)
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        _getattr = getattr
+        try:
+            return _getattr(obj, self.under_name)
+        except AttributeError:
+            return self.get_default(obj)
+
+    def get_default(self, obj):
+        return self.default
+
+    def __set__(self, obj, value):
+        setattr(obj, self.under_name, value)
+
+    def __delete__(self, obj):
+        delattr(obj, self.under_name)
+
+class _Resetter(_Descriptor):
+    def __set__(self, obj, value):
+        super(_Resetter, self).__set__(obj, value)
+        obj._reset()
+
+class _PixelSize(_Resetter):
+    def __set__(self, obj, value):
+        value = max(int(value), 1)
+        super(_PixelSize, self).__set__(obj, value)
+
+class _Rotation(_Resetter):
+    def __set__(self, obj, value):
+        value = float(value)
+        super(_Rotation, self).__set__(obj, value)
+
+_ImgSize = namedtuple('_ImgSize', ('width', 'height'))
+
 
 class Img(object):
     """Img is a class which creates & manipulates cairo SurfacePatterns from an image
@@ -92,8 +135,12 @@ class Img(object):
         self.path = path
 
     def _reset(self):
-        del self.surface
-        del self.pattern
+        attrs = ('surface', 'pattern')
+        for attr in attrs:
+            try:
+                delattr(self, attr)
+            except AttributeError:
+                pass
 
     @classmethod
     def from_path(cls, image_path):
@@ -106,12 +153,27 @@ class Img(object):
         return cls(bytes_img, name=name, path=image_path)
 
     @property
-    def file_type(self):
+    def default_surface(self):
         try:
-            return self._file_type
+            return self._default_surface
         except AttributeError:
-            self.surface
-            return self._file_type
+            surf, fmt = get_cairo_surface(self.bytes_img)
+            self._default_surface = surf
+            return surf
+
+    @property
+    def default_size(self):
+        try:
+            return self._default_size
+        except AttributeError:
+            surf = self.default_surface
+            size = _ImgSize(surf.get_width(), surf.get_height())
+            self._default_size = size
+            return size
+
+    theta = _Rotation('theta', default=0.0)
+    width = _PixelSize('width')
+    height = _PixelSize('height')
 
     @property
     def surface(self):
@@ -132,64 +194,6 @@ class Img(object):
         except AttributeError:
             pass
 
-    @property
-    def theta(self):
-        try:
-            return self._theta
-        except AttributeError:
-            return 0.0
-
-    @theta.setter
-    def theta(self, value):
-        self._theta = float(value)
-        self._reset()
-
-    @theta.deleter
-    def theta(self):
-        del self._theta
-        self._reset()
-
-    @property
-    def width(self):
-        try:
-            return self._width
-        except AttributeError:
-            return self.surface.get_width()
-
-    @width.setter
-    def width(self, value):
-        new_width = max(int(value), 1)
-        if self.lock_aspect_ratio:
-            height0, width0 = self.height, self.width
-            self._height = int(height0 * new_width / width0)
-        self._width = new_width
-        self._reset()
-
-    @width.deleter
-    def width(self):
-        del self._width
-        self._reset()
-
-    @property
-    def height(self):
-        try:
-            return self._height
-        except AttributeError:
-            return self.surface.get_height()
-
-    @height.setter
-    def height(self, value):
-        new_height = max(int(value), 1)
-        if self.lock_aspect_ratio:
-            height0, width0 = self.height, self.width
-            self._width = int(width0 * new_height / height0)
-        self._height = new_height
-        self._reset()
-
-    @height.deleter
-    def height(self):
-        del self._height
-        self._reset()
 
     @property
     def pattern(self):
