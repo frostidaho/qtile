@@ -50,7 +50,6 @@ addons:
     - xserver-xephyr
     - xvfb
     - graphviz # for docs
-    - imagemagick
 
 install:
   - pip install tox
