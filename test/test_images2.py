@@ -21,49 +21,22 @@ def compare_images(test_img, reference_img, metric='MAE'):
     Use imagemagick to calculate distortion using the given metric
     """
     cmd = [
-        'compare',
-        '-metric',
-        metric,
+        'convert',
         test_img,
         reference_img,
+        '-metric',
+        metric,
+        '-compare',
         '-format',
         '%[distortion]\n',
-        'info:',
+        'info:'
     ]
     p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
     stdout, stderr = p.communicate()
     print('stdout', stdout)
     print('stderr', stderr)
     print('cmd', cmd)
-    print('returncode', p.returncode)
-    stdout = stdout.decode().strip()
-    lines = stdout.splitlines()
-    assert len(lines) == 2
-    value = lines[-1].strip()
-    return float(value)
-
-# def compare_images(test_img, reference_img, metric='MAE'):
-#     """Compare images at paths test_img and reference_img
-
-#     Use imagemagick to calculate distortion using the given metric
-#     """
-#     cmd = [
-#         'convert',
-#         test_img,
-#         reference_img,
-#         '-metric',
-#         metric,
-#         '-compare',
-#         '-format',
-#         '%[distortion]\n',
-#         'info:'
-#     ]
-#     p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
-#     print('stdout', stdout)
-#     print('stderr', stderr)
-#     print('cmd', cmd)
-#     stdout, stderr = p.communicate()
-#     return float(stdout.decode().strip())
+    return float(stdout.decode().strip())
 
 def compare_images_all_metrics(test_img, reference_img):
     """Compare images at paths test_img and reference_img
