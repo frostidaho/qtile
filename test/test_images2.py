@@ -32,6 +32,9 @@ def compare_images(test_img, reference_img, metric='MAE'):
         'info:'
     ]
     p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+    print('stdout', stdout)
+    print('stderr', stderr)
+    print('cmd', cmd)
     stdout, stderr = p.communicate()
     return float(stdout.decode().strip())
 
