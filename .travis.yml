@@ -51,7 +51,6 @@ addons:
     - xvfb
     - graphviz # for docs
     - imagemagick
-    - php5-imagick
 
 install:
   - pip install tox
