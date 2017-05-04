@@ -62,16 +62,22 @@ class Image(base._Widget, base.MarginMixin):
         self.img = img
         if not self.scale:
             return
-        width0, height0 = img.width, img.height
-        img.lock_aspect_ratio = True
         if self.bar.horizontal:
+            _, old_height = img.default_size
             new_height = self.bar.height - (self.margin_y * 2)
-            if (new_height > 0) and (new_height != height0):
-                img.height = new_height
+            height_factor = new_height / old_height
+            img.scale(
+                height_factor=height_factor,
+                lock_aspect_ratio=True,
+            )
         else:
+            old_width, _ = img.default_size
             new_width = self.bar.width - (self.margin_x * 2)
-            if (new_width > 0) and (new_width != width0):
-                img.width = new_width
+            width_factor = new_width / old_width
+            img.scale(
+                width_factor=width_factor,
+                lock_aspect_ratio=True,
+            )
 
     def draw(self):
         self.drawer.clear(self.bar.background)

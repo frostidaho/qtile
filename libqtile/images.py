@@ -102,7 +102,7 @@ class _Resetter(_Descriptor):
 
 class _PixelSize(_Resetter):
     def __set__(self, obj, value):
-        value = max(int(value), 1)
+        value = max(round(value), 1)
         super(_PixelSize, self).__set__(obj, value)
 
 class _Rotation(_Resetter):
