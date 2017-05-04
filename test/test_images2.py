@@ -15,6 +15,7 @@ from os import path
 from glob import glob
 
 def get_imagemagick_version():
+    "Get the installed imagemagick version from the convert utility"
     p = sp.Popen(['convert', '-version'], stdout=sp.PIPE, stderr=sp.PIPE)
     stdout, stderr = p.communicate()
     lines = stdout.decode().splitlines()
@@ -26,6 +27,7 @@ def get_imagemagick_version():
     return [int(x) for x in vals]
 
 def should_skip():
+    "Check if tests should be skipped due to old imagemagick version."
     min_version = (6, 9)        # minimum imagemagick version
     try:
         actual_version = get_imagemagick_version()
@@ -47,7 +49,8 @@ ImgDistortion = namedtuple('ImgDistortion', metrics)
 def compare_images(test_img, reference_img, metric='MAE'):
     """Compare images at paths test_img and reference_img
 
-    Use imagemagick to calculate distortion using the given metric
+    Use imagemagick to calculate distortion using the given metric.
+    You can view the available metrics with 'convert -list metric'.
     """
     cmd = [
         'convert',
@@ -80,11 +83,13 @@ def compare_images_all_metrics(test_img, reference_img):
 
 @pytest.fixture(scope='function', params=SVGS)
 def svg_img(request):
+    "svg_img returns an instance of libqtile.images.Img()"
     fpath = request.param
     return images.Img.from_path(fpath)
 
 @pytest.fixture(scope='function')
 def comparison_images(svg_img):
+    "Return a tuple of paths to the bad and good comparison images, respectively."
     name = svg_img.name
     path_good = path.join(DATA_DIR, 'comparison_images', name+'_good.png')
     path_bad = path.join(DATA_DIR, 'comparison_images', name+'_bad.png')
