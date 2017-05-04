@@ -110,6 +110,11 @@ class _Rotation(_Resetter):
         value = float(value)
         super(_Rotation, self).__set__(obj, value)
 
+# class _Resettable(_Descriptor):
+#     def __set__(self, obj, value):
+#         msg = "{} can't be set".format(self.name)
+#         raise TypeError(msg)
+
 _ImgSize = namedtuple('_ImgSize', ('width', 'height'))
 
 
@@ -146,7 +151,7 @@ class Img(object):
             bytes_img = fobj.read()
         name = os.path.basename(image_path)
         name, file_type = os.path.splitext(name)
-        file_type = file_type.lstrip('.')
+        # file_type = file_type.lstrip('.')
         return cls(bytes_img, name=name, path=image_path)
 
     @property
@@ -174,9 +179,10 @@ class Img(object):
 
     def scale(self, width_factor=None, height_factor=None, lock_aspect_ratio=False):
         if lock_aspect_ratio:
-            self._scale_lock(width_factor, height_factor, self.default_size)
+            res = self._scale_lock(width_factor, height_factor, self.default_size)
         else:
-            self._scale_free(width_factor, height_factor, self.default_size)
+            res = self._scale_free(width_factor, height_factor, self.default_size)
+        self.width, self.height = res
 
     @staticmethod
     def _scale_lock(width_factor, height_factor, initial_size):
@@ -209,11 +215,8 @@ class Img(object):
         try:
             return self._surface
         except AttributeError:
-            width = getattr(self, '_width', None)
-            height = getattr(self, '_height', None)
-            surf, fmt = get_cairo_surface(self.bytes_img, width, height)
+            surf, fmt = get_cairo_surface(self.bytes_img, self.width, self.height)
             self._surface = surf
-            self._file_type = fmt
             return surf
 
     @surface.deleter
