@@ -189,6 +189,20 @@ class Img(object):
     width = _PixelSize('width')
     height = _PixelSize('height')
 
+    def resize(self, width=None, height=None):
+        width0, height0 = self.default_size
+        width_factor, height_factor = None, None
+        if width is not None:
+            width_factor = width / width0
+        if height is not None:
+            height_factor = height / height0
+
+        if width and height:
+            return self.scale(width_factor, height_factor, lock_aspect_ratio=False)
+        if width or height:
+            return self.scale(width_factor, height_factor, lock_aspect_ratio=True)
+        raise ValueError("You must supply either width or height!")
+
     def scale(self, width_factor=None, height_factor=None, lock_aspect_ratio=False):
         if not (width_factor or height_factor):
             raise ValueError('You must supply width_factor or height_factor')
