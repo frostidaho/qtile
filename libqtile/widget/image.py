@@ -91,7 +91,13 @@ class Image(base._Widget, base.MarginMixin):
             self.drawer.draw(offsety=self.offset, height=self.width)
 
     def calculate_length(self):
+        img = self.img
+        width, height = img.default_size
+        if img.width:
+            width = img.width
+        if img.height:
+            height = img.height
         if self.bar.horizontal:
-            return self.img.width + (self.margin_x * 2)
+            return width + (self.margin_x * 2)
         else:
-            return self.img.height + (self.margin_y * 2)
+            return height + (self.margin_y * 2)
