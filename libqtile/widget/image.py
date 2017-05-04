@@ -65,17 +65,15 @@ class Image(base._Widget, base.MarginMixin):
         if self.bar.horizontal:
             _, old_height = img.default_size
             new_height = self.bar.height - (self.margin_y * 2)
-            height_factor = new_height / old_height
             img.scale(
-                height_factor=height_factor,
+                height_factor=new_height / old_height,
                 lock_aspect_ratio=True,
             )
         else:
             old_width, _ = img.default_size
             new_width = self.bar.width - (self.margin_x * 2)
-            width_factor = new_width / old_width
             img.scale(
-                width_factor=width_factor,
+                width_factor=new_width / old_width,
                 lock_aspect_ratio=True,
             )
 
