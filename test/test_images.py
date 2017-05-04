@@ -140,3 +140,30 @@ class TestImg(object):
         assert_approx_equal(t_matrix, (s2o2, -s2o2, s2o2, s2o2))
         del img.theta
         assert img.theta == pytest.approx(0.0)
+
+class TestImgScale(object):
+    def test_scale(self, png_img):
+        size = png_img.default_size
+        png_img.scale(2, 3)
+        assert png_img.width == 2 * size.width
+        assert png_img.height == 3 * size.height
+        png_img._reset()
+        png_img.scale(1.99, 2.99)
+        assert png_img.width == 2 * size.width
+        assert png_img.height == 3 * size.height
+
+    def test_scale_width_lock(self, png_img):
+        size = png_img.default_size
+        png_img.scale(width_factor=10, lock_aspect_ratio=True)
+        assert png_img.width == 10 * size.width
+        assert png_img.height == 10 * size.height
+
+    def test_scale_height_lock(self, png_img):
+        size = png_img.default_size
+        png_img.scale(height_factor=11, lock_aspect_ratio=True)
+        assert png_img.height == 11 * size.height
+        assert png_img.width == 11 * size.width
+
+    def test_scale_fail_lock(self, png_img):
+        with pytest.raises(ValueError):
+            png_img.scale(0.5, 4.0, lock_aspect_ratio=True)
