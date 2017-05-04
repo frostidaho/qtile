@@ -6,7 +6,6 @@ Img().
 Image similarity / distance is calculated using imagemagick's convert
 utility.
 """
-from __future__ import division
 import pytest
 import libqtile.images as images
 import cairocffi
@@ -41,9 +40,7 @@ pytestmark = pytest.mark.skipif(should_skip(), reason="recent version of imagema
 
 TEST_DIR = path.dirname(path.abspath(__file__))
 DATA_DIR = path.join(TEST_DIR, 'data')
-# PNGS = glob(path.join(DATA_DIR, '*', '*.png'))
 SVGS = glob(path.join(DATA_DIR, '*', '*.svg'))
-ALL_IMAGES = glob(path.join(DATA_DIR, '*', '*'))
 metrics = ('AE', 'FUZZ', 'MAE', 'MEPP', 'MSE', 'PAE', 'PHASH', 'PSNR', 'RMSE')
 ImgDistortion = namedtuple('ImgDistortion', metrics)
 
@@ -109,7 +106,6 @@ def test_svg_scaling(svg_img, distortion_bad, comparison_images, tmpdir):
     print(svg_img.path)
     print(distortion_bad)
     print(tmpdir.dirpath())
-    # assert distortion_bad == 1
     dpath = tmpdir.dirpath
 
     width, height = svg_img.width, svg_img.height
