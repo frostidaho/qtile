@@ -147,7 +147,9 @@ class TestImgScale(object):
         png_img.scale(2, 3)
         assert png_img.width == 2 * size.width
         assert png_img.height == 3 * size.height
-        png_img._reset()
+
+    def test_scale_rounding(self, png_img):
+        size = png_img.default_size
         png_img.scale(1.99, 2.99)
         assert png_img.width == 2 * size.width
         assert png_img.height == 3 * size.height
@@ -167,3 +169,7 @@ class TestImgScale(object):
     def test_scale_fail_lock(self, png_img):
         with pytest.raises(ValueError):
             png_img.scale(0.5, 4.0, lock_aspect_ratio=True)
+
+    def test_scale_fail(self, png_img):
+        with pytest.raises(ValueError):
+            png_img.scale()

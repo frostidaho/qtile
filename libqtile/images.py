@@ -201,6 +201,8 @@ class Img(object):
     height = _PixelSize('height')
 
     def scale(self, width_factor=None, height_factor=None, lock_aspect_ratio=False):
+        if not (width_factor or height_factor):
+            raise ValueError('You must supply width_factor or height_factor')
         if lock_aspect_ratio:
             res = self._scale_lock(width_factor, height_factor, self.default_size)
         else:
@@ -215,8 +217,6 @@ class Img(object):
                 "and give width_factor and height_factor."
                 " {}, {}".format(width_factor, height_factor)
             )
-        if not (width_factor or height_factor):
-            raise ValueError('You must supply width_factor or height_factor')
         width0, height0 = initial_size
         if width_factor:
             width = width0 * width_factor
@@ -228,8 +228,8 @@ class Img(object):
 
     @staticmethod
     def _scale_free(width_factor, height_factor, initial_size):
-        if not (width_factor and height_factor):
-            raise ValueError('You must supply width_factor and height_factor')
+        width_factor = 1 if width_factor is None else width_factor
+        height_factor = 1 if height_factor is None else height_factor
         width0, height0 = initial_size
         return _ImgSize(width0 * width_factor, height0 * height_factor)
 
