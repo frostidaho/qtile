@@ -128,11 +128,6 @@ class _Rotation(_Resetter):
         value = float(value)
         super(_Rotation, self).__set__(obj, value)
 
-# class _Resettable(_Descriptor):
-#     def __set__(self, obj, value):
-#         msg = "{} can't be set".format(self.name)
-#         raise TypeError(msg)
-
 _ImgSize = namedtuple('_ImgSize', ('width', 'height'))
 
 
@@ -169,7 +164,6 @@ class Img(object):
             bytes_img = fobj.read()
         name = os.path.basename(image_path)
         name, file_type = os.path.splitext(name)
-        # file_type = file_type.lstrip('.')
         return cls(bytes_img, name=name, path=image_path)
 
     @property
