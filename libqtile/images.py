@@ -25,19 +25,22 @@ from collections import namedtuple
 class LoadingError(Exception):
     pass
 
+_SurfaceInfo = namedtuple('_SurfaceInfo', ('surface', 'file_type'))
+
 def _decode_to_image_surface(bytes_img, width=None, height=None):
     try:
         surf, fmt = cairocffi.pixbuf.decode_to_image_surface(bytes_img, width, height)
         return _SurfaceInfo(surf, fmt)
     except TypeError:
         from .log_utils import logger
-        logger.exception("Couldn't set cairo image surface width and height")
-        # need to use cairocffi patch to set width and height
-        # https://github.com/frostidaho/cairocffi/tree/pixbuf_size
+        logger.exception(
+            "Couldn't load cairo image at specified width and height. "
+            "Falling back to image scaling using cairo. "
+            "Need cairocffi > v0.8.0"
+        )
         surf, fmt = cairocffi.pixbuf.decode_to_image_surface(bytes_img)
         return _SurfaceInfo(surf, fmt)
 
-_SurfaceInfo = namedtuple('_SurfaceInfo', ('surface', 'file_type'))
 def get_cairo_surface(bytes_img, width=None, height=None):
     try:
         surf = cairocffi.ImageSurface.create_from_png(io.BytesIO(bytes_img))
@@ -45,8 +48,7 @@ def get_cairo_surface(bytes_img, width=None, height=None):
     except (MemoryError, OSError):
         pass
     try:
-        surf, fmt = _decode_to_image_surface(bytes_img, width, height)
-        return _SurfaceInfo(surf, fmt)
+        return _decode_to_image_surface(bytes_img, width, height)
     except cairocffi.pixbuf.ImageLoadingError:
         pass
     raise LoadingError("Couldn't load image!")
