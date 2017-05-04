@@ -122,6 +122,10 @@ class _PixelSize(_Resetter):
         value = max(round(value), 1)
         super(_PixelSize, self).__set__(obj, value)
 
+    def get_default(self, obj):
+        size = obj.default_size
+        return getattr(size, self.name)
+
 class _Rotation(_Resetter):
     def __set__(self, obj, value):
         value = float(value)
