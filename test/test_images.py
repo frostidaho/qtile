@@ -150,7 +150,7 @@ class TestImgScale(object):
 
     def test_scale_rounding(self, png_img):
         size = png_img.default_size
-        png_img.scale(1.99, 2.99)
+        png_img.scale(1.99999, 2.99999)
         assert png_img.width == 2 * size.width
         assert png_img.height == 3 * size.height
 
