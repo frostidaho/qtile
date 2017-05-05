@@ -173,3 +173,23 @@ class TestImgScale(object):
     def test_scale_fail(self, png_img):
         with pytest.raises(ValueError):
             png_img.scale()
+
+class TestImgResize(object):
+    def test_resize(self, png_img):
+        png_img.resize(100, 100)
+        assert png_img.width == 100
+        assert png_img.height == 100
+
+    def test_resize_width(self, png_img):
+        size = png_img.default_size
+        ratio = size.width / size.height
+        png_img.resize(width=40)
+        assert png_img.width == 40
+        assert (png_img.width / png_img.height) == pytest.approx(ratio)
+
+    def test_resize_height(self, png_img):
+        size = png_img.default_size
+        ratio = size.width / size.height
+        png_img.resize(height=10)
+        assert png_img.height == 10
+        assert (png_img.width / png_img.height) == pytest.approx(ratio)
