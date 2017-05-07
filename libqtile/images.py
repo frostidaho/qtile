@@ -21,7 +21,7 @@ import cairocffi.pixbuf
 import io
 import os
 import re
-from collections import namedtuple, defaultdict
+from collections import namedtuple, defaultdict, OrderedDict
 
 class LoadingError(Exception):
     pass
@@ -325,3 +325,30 @@ def get_matching_files(dirpath='.', explicit_filetype=False, *names):
             filename = name
         d_total[name].append(join_path(directory, filename))
     return d_total
+
+class Loader(object):
+    def __init__(self, *directories, **kwargs):
+        self.explicit_filetype = False
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.directories = list(directories)
+
+    def __call__(self, *names):
+        d = dict(self._get_images(names))
+        return OrderedDict(((x, d[x]) for x in names))
+
+    def _get_images(self, names):
+        seen = set()
+        set_names = set(names)
+
+        explicit = self.explicit_filetype
+        matching = get_matching_files
+        from_path = Img.from_path
+        for directory in self.directories:
+            d_matches = matching(directory, explicit, *(set_names - seen))
+            for name, paths in d_matches.items():
+                yield (name, from_path(paths[0]))
+                seen.add(name)
+        if seen != set_names:
+            msg = "Wasn't able to find images corresponding to the names: {}"
+            raise LoadingError(msg.format(set_names - seen))

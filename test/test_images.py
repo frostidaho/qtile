@@ -230,3 +230,29 @@ class TestGetMatchingFiles(object):
         dfiles = images.get_matching_files(DATA_DIR, False, *names)
         for name, length in names.items():
             assert len(dfiles[name]) == length
+
+
+class TestLoader(object):
+    @pytest.fixture(scope='function')
+    def loader(self):
+        png_dir = path.join(DATA_DIR, 'png')
+        svg_dir = path.join(DATA_DIR, 'svg')
+        return images.Loader(svg_dir, png_dir)
+
+    def test_audio_volume_muted(self, loader):
+        name = 'audio-volume-muted'
+        result = loader(name)
+        assert isinstance(result[name], images.Img)
+        assert result[name].path.endswith('.svg')
+
+    def test_audio_volume_muted_png(self, loader):
+        name = 'audio-volume-muted.png'
+        loader.explicit_filetype = True
+        result = loader(name)
+        assert isinstance(result[name], images.Img)
+        assert result[name].path.endswith('.png')
+
+    def test_load_file_missing(self, loader):
+        names = ('audio-asdlfjasdvolume-muted', 'audio-volume-muted')
+        with pytest.raises(images.LoadingError):
+            result = loader(*names)
