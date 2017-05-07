@@ -30,15 +30,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 import re
 import subprocess
 
-import cairocffi
-
 from . import base
 from .. import bar
-from libqtile.log_utils import logger
 
 __all__ = [
     'Volume',
