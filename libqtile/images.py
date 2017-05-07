@@ -327,6 +327,12 @@ def get_matching_files(dirpath='.', explicit_filetype=False, *names):
     return d_total
 
 class Loader(object):
+    """Loader - create Img() instances from image names
+
+    load icons with Loader e.g.,
+    >>> ldr = Loader('/usr/share/icons/Adwaita/24x24', '/usr/share/icons/Adwaita')
+    >>> d_loaded_images = ldr.icons('audio-volume-muted', 'audio-volume-low')
+    """
     def __init__(self, *directories, **kwargs):
         self.explicit_filetype = False
         for k, v in kwargs.items():
