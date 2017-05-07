@@ -172,7 +172,7 @@ class Volume(base._TextBox):
             'audio-volume-muted',
         )
         d_images = images.Loader(self.theme_path)(*names)
-        for img, name in d_images.items():
+        for name, img in d_images.items():
             new_height = self.bar.height - 1
             img.resize(height=new_height)
             if img.width > self.length:
