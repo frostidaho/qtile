@@ -9,6 +9,7 @@ import cairocffi
 import os
 from os import path
 from glob import glob
+from collections import OrderedDict
 
 TEST_DIR = path.dirname(os.path.abspath(__file__))
 DATA_DIR = path.join(TEST_DIR, 'data')
@@ -193,3 +194,43 @@ class TestImgResize(object):
         png_img.resize(height=10)
         assert png_img.height == 10
         assert (png_img.width / png_img.height) == pytest.approx(ratio)
+
+
+class TestGetMatchingFiles(object):
+    def test_audio_volume_muted(self):
+        name = 'audio-volume-muted'
+        dfiles = images.get_matching_files(
+            DATA_DIR,
+            False,
+            name,
+        )
+        result = dfiles[name]
+        assert len(result) == 2
+        png = path.join(DATA_DIR, 'png', 'audio-volume-muted.png')
+        assert png in result
+        svg = path.join(DATA_DIR, 'svg', 'audio-volume-muted.svg')
+        assert svg in result
+
+    def test_only_svg(self):
+        name = 'audio-volume-muted.svg'
+        dfiles = images.get_matching_files(
+            DATA_DIR,
+            True,
+            name,
+        )
+        result = dfiles[name]
+        assert len(result) == 1
+        svg = path.join(DATA_DIR, 'svg', 'audio-volume-muted.svg')
+        assert svg in result
+
+    def test_multiple(self):
+        names = OrderedDict()
+        names['audio-volume-muted'] = 2
+        names['battery-caution-charging'] = 1
+        dfiles = images.get_matching_files(
+            DATA_DIR,
+            False,
+            *names,
+        )
+        for name, length in names.items():
+            assert len(dfiles[name]) == length
