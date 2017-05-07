@@ -20,7 +20,8 @@ import cairocffi
 import cairocffi.pixbuf
 import io
 import os
-from collections import namedtuple
+import re
+from collections import namedtuple, defaultdict
 
 class LoadingError(Exception):
     pass
@@ -290,3 +291,37 @@ class Img(object):
         s0 = (self.bytes_img, self.theta, self.width, self.height)
         s1 = (other.bytes_img, other.theta, other.width, other.height)
         return s0 == s1
+
+
+def get_matching_files(dirpath='.', explicit_filetype=False, *names):
+    """Search dirpath recursively for files matching the names
+
+    Return a dict with keys equal to entries in names
+    and values a list of matching paths.
+    """
+    def match_files_in_dir(dirpath, regex_pattern):
+        for dpath, dnames, fnames in os.walk(dirpath):
+            matches = (regex_pattern.match(x) for x in fnames)
+            for match in (x for x in matches if x):
+                d = match.groupdict()
+                d['directory'] = dpath
+                yield d
+
+    pat_str = '(?P<name>' + '|'.join(map(re.escape, names)) + ')'
+    if explicit_filetype:
+        pat_str += '$'
+    else:
+        pat_str += '\\.(?P<suffix>\w+)$'
+    regex_pattern = re.compile(pat_str, flags=re.IGNORECASE)
+
+    d_total = defaultdict(list)
+    join_path = os.path.join
+    for d_match in match_files_in_dir(dirpath, regex_pattern):
+        name, directory = d_match['name'], d_match['directory']
+        try:
+            suffix = d_match['suffix']
+            filename = '.'.join((name, suffix))
+        except KeyError:
+            filename = name
+        d_total[name].append(join_path(directory, filename))
+    return d_total
