@@ -227,10 +227,6 @@ class TestGetMatchingFiles(object):
         names = OrderedDict()
         names['audio-volume-muted'] = 2
         names['battery-caution-charging'] = 1
-        dfiles = images.get_matching_files(
-            DATA_DIR,
-            False,
-            *names,
-        )
+        dfiles = images.get_matching_files(DATA_DIR, False, *names)
         for name, length in names.items():
             assert len(dfiles[name]) == length
