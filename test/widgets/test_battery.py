@@ -19,14 +19,14 @@ def test_images_fail():
     with pytest.raises(images.LoadingError):
         battery.setup_images()
 
-def test_images_good(tmpdir, bar):
+def test_images_good(tmpdir, fake_bar):
     for name in BatteryIcon.icon_names:
         target = tmpdir.join(name + '.svg')
         audio_volume_muted.copy(target)
 
     batt = BatteryIcon(theme_path=str(tmpdir))
     batt.fontsize = 12
-    batt.bar = bar
+    batt.bar = fake_bar
     batt.setup_images()
     assert len(batt.surfaces) == len(BatteryIcon.icon_names)
     for name, surfpat in batt.surfaces.items():

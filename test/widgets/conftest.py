@@ -1,7 +1,7 @@
 import pytest
 
 @pytest.fixture(scope='function')
-def bar():
+def fake_bar():
     from libqtile.bar import Bar
     height = 24
     b = Bar([], height)

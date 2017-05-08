@@ -19,7 +19,7 @@ def test_images_fail():
     with pytest.raises(images.LoadingError):
         vol.setup_images()
 
-def test_images_good(tmpdir, bar):
+def test_images_good(tmpdir, fake_bar):
     names = (
         'audio-volume-high.svg',
         'audio-volume-low.svg',
@@ -31,7 +31,7 @@ def test_images_good(tmpdir, bar):
         audio_volume_muted.copy(target)
 
     vol = Volume(theme_path=str(tmpdir))
-    vol.bar = bar
+    vol.bar = fake_bar
     vol.setup_images()
     assert len(vol.surfaces) == len(names)
     for name, surfpat in vol.surfaces.items():
