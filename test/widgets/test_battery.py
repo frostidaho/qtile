@@ -1,18 +1,8 @@
 import pytest
-import py
-import os
 from libqtile.widget import Battery, BatteryIcon
 from libqtile import images
 import cairocffi
-
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(os.path.dirname(TEST_DIR), 'data')
-
-audio_volume_muted = os.path.join(
-    DATA_DIR, 'svg', 'audio-volume-muted.svg',
-)
-
-audio_volume_muted = py.path.local(audio_volume_muted)
+from .conftest import TEST_DIR
 
 def test_images_fail():
     """Test BatteryIcon() with a bad theme_path
@@ -23,14 +13,14 @@ def test_images_fail():
     with pytest.raises(images.LoadingError):
         battery.setup_images()
 
-def test_images_good(tmpdir, fake_bar):
+def test_images_good(tmpdir, fake_bar, svg_img_as_pypath):
     """Test BatteryIcon() with a good theme_path
 
     This theme path does contain all of the required images.
     """
     for name in BatteryIcon.icon_names:
         target = tmpdir.join(name + '.svg')
-        audio_volume_muted.copy(target)
+        svg_img_as_pypath.copy(target)
 
     batt = BatteryIcon(theme_path=str(tmpdir))
     batt.fontsize = 12
