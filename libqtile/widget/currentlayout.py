@@ -107,7 +107,6 @@ class CurrentLayoutIcon(base._TextBox):
     def __init__(self, **config):
         base._TextBox.__init__(self, "", **config)
         self.add_defaults(CurrentLayoutIcon.defaults)
-        self.scale = 1.0 / self.scale
 
         self.length_type = bar.STATIC
         self.length = 0
