@@ -1,5 +1,5 @@
 import pytest
-from libqtile.widget import Battery, BatteryIcon
+from libqtile.widget import BatteryIcon
 from libqtile import images
 import cairocffi
 from .conftest import TEST_DIR
