@@ -35,7 +35,7 @@ import os
 from libqtile import bar
 from libqtile.log_utils import logger
 from . import base
-from ..images import Loader
+from .. import images
 
 BAT_DIR = '/sys/class/power_supply'
 CHARGED = 'Full'
@@ -325,7 +325,7 @@ class BatteryIcon(_Battery):
             base._TextBox.draw(self)
 
     def setup_images(self):
-        d_imgs = Loader(self.theme_path)(*self.icon_names)
+        d_imgs = images.Loader(self.theme_path)(*self.icon_names)
         new_height = self.bar.height - self.actual_padding
         surfs = self.surfaces
         for key, img in d_imgs.items():
