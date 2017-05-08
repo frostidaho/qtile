@@ -33,7 +33,6 @@ from .. import bar, hook
 from ..log_utils import logger
 import six
 import os
-import cairocffi
 from ..layout.base import Layout
 from .. import layout as layout_module
 
@@ -184,57 +183,18 @@ class CurrentLayoutIcon(base._TextBox):
         root = os.sep.join(os.path.abspath(__file__).split(os.sep)[:-2])
         self.icon_paths.append(os.path.join(root, 'resources', 'layout-icons'))
 
-    def find_icon_file_path(self, layout_name):
-        icon_filename = 'layout-{}.png'.format(layout_name)
-        for icon_path in self.icon_paths:
-            icon_file_path = os.path.join(icon_path, icon_filename)
-            if os.path.isfile(icon_file_path):
-                return icon_file_path
-
     def _setup_images(self):
         """
         Loads layout icons.
         """
-        for layout_name in self._get_layout_names():
-            icon_file_path = self.find_icon_file_path(layout_name)
-            if icon_file_path is None:
-                logger.warning('No icon found for layout "{}"'.format(layout_name))
-                icon_file_path = self.find_icon_file_path('unknown')
-
-            try:
-                img = cairocffi.ImageSurface.create_from_png(icon_file_path)
-            except (cairocffi.Error, IOError) as e:
-                # Icon file is guaranteed to exist at this point.
-                # If this exception happens, it means the icon file contains
-                # an invalid image or is not readable.
-                self.icons_loaded = False
-                logger.exception(
-                    'Failed to load icon from file "{}", '
-                    'error was: {}'.format(icon_file_path, e.message)
-                )
-                return
-
-            input_width = img.get_width()
-            input_height = img.get_height()
-
-            sp = input_height / (self.bar.height - 1)
-
-            width = input_width / sp
-            if width > self.length:
-                self.length = int(width) + self.actual_padding * 2
-
-            imgpat = cairocffi.SurfacePattern(img)
-
-            scaler = cairocffi.Matrix()
-
-            scaler.scale(sp, sp)
-            scaler.scale(self.scale, self.scale)
-            factor = (1 - 1 / self.scale) / 2
-            scaler.translate(-width * factor, -width * factor)
-            scaler.translate(self.actual_padding * -1, 0)
-            imgpat.set_matrix(scaler)
-
-            imgpat.set_filter(cairocffi.FILTER_BEST)
-            self.surfaces[layout_name] = imgpat
-
+        from ..images import Loader
+        img_names = ['layout-{}'.format(x) for x in self._get_layout_names()]
+        d_imgs = Loader(*self.icon_paths)(*img_names)
+        for img_name, img in d_imgs.items():
+            layout_name = img_name.lstrip('layout-')
+            new_height = self.bar.height - 1
+            img.resize(height=new_height * self.scale)
+            if img.width > self.length:
+                self.length = int(img.width + self.actual_padding * 2)
+            self.surfaces[layout_name] = img.pattern
         self.icons_loaded = True
