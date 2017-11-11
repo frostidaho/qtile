@@ -68,6 +68,8 @@ class Volume(base._TextBox):
         ("volume_up_command", None, "Volume up command"),
         ("volume_down_command", None, "Volume down command"),
         ("get_volume_command", None, "Command to get the current volume"),
+        ("step", 2, "Volume change for up an down commands in percentage."
+                    "Only used if ``volume_up_command`` and ``volume_down_command`` are not set.")
     ]
 
     def __init__(self, **config):
@@ -104,7 +106,7 @@ class Volume(base._TextBox):
                 subprocess.call(self.create_amixer_command('-q',
                                                            'sset',
                                                            self.channel,
-                                                           '2%-'))
+                                                           '%d%%-' % self.step))
         elif button == BUTTON_UP:
             if self.volume_up_command is not None:
                 subprocess.call(self.volume_up_command)
@@ -112,7 +114,7 @@ class Volume(base._TextBox):
                 subprocess.call(self.create_amixer_command('-q',
                                                            'sset',
                                                            self.channel,
-                                                           '2%+'))
+                                                           '%d%%+' % self.step))
         elif button == BUTTON_MUTE:
             if self.mute_command is not None:
                 subprocess.call(self.mute_command)

@@ -228,7 +228,7 @@ class Qtile(command.CommandObject):
             st = pickle.load(io.BytesIO(state.encode()))
             try:
                 st.apply(self)
-            except:
+            except:  # noqa: E722
                 logger.exception("failed restoring state")
 
         self.scan()
@@ -335,7 +335,7 @@ class Qtile(command.CommandObject):
             self._eventloop.remove_reader(fd)
             self.conn.finalize()
             self.server.close()
-        except:
+        except:  # noqa: E722
             logger.exception('exception during finalize')
         finally:
             self._eventloop.close()
@@ -470,9 +470,9 @@ class Qtile(command.CommandObject):
         )
         self.root.set_property("_NET_CURRENT_DESKTOP", index)
 
-    def addGroup(self, name, layout=None, layouts=None):
+    def addGroup(self, name, layout=None, layouts=None, label=None):
         if name not in self.groupMap.keys():
-            g = _Group(name, layout)
+            g = _Group(name, layout, label=label)
             self.groups.append(g)
             if not layouts:
                 layouts = self.config.layouts
@@ -1414,7 +1414,7 @@ class Qtile(command.CommandObject):
         buf = io.BytesIO()
         try:
             pickle.dump(QtileState(self), buf, protocol=0)
-        except:
+        except:  # noqa: E722
             logger.error("Unable to pickle qtile state")
         argv = [s for s in argv if not s.startswith('--with-state')]
         argv.append('--with-state=' + buf.getvalue().decode())
@@ -1729,9 +1729,9 @@ class Qtile(command.CommandObject):
             return
         mb.startInput(prompt, f, "qshell")
 
-    def cmd_addgroup(self, group):
+    def cmd_addgroup(self, group, label=None):
         """Add a group with the given name"""
-        return self.addGroup(group)
+        return self.addGroup(group, label=label)
 
     def cmd_delgroup(self, group):
         """Delete a group with the given name"""
@@ -1780,7 +1780,7 @@ class Qtile(command.CommandObject):
             module.main(self)
         except ImportError as e:
             err_str += format_error(full_path, e)
-        except:
+        except:  # noqa: E722
             (exc_type, exc_value, exc_traceback) = sys.exc_info()
             err_str += traceback.format_exc()
             err_str += format_error(full_path, exc_type(exc_value))

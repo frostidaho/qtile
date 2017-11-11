@@ -42,9 +42,12 @@ class _Group(command.CommandObject):
 
     Analogous to workspaces in other window managers. Each client window
     managed by the window manager belongs to exactly one group.
+
+    A group is identified by its name but displayed in GroupBox widget by its label.
     """
-    def __init__(self, name, layout=None):
+    def __init__(self, name, layout=None, label=None):
         self.name = name
+        self.label = name if label is None else label
         self.customLayout = layout  # will be set on _configure
         self.windows = set()
         self.qtile = None
@@ -155,7 +158,7 @@ class _Group(command.CommandObject):
                 if normal:
                     try:
                         self.layout.layout(normal, screen)
-                    except:
+                    except:  # noqa: E722
                         logger.exception("Exception in layout %s",
                             self.layout.name)
                 if floating:
@@ -230,12 +233,12 @@ class _Group(command.CommandObject):
                 for l in self.layouts:
                     l.focus(win)
             hook.fire("focus_change")
-            # !!! note that warp isn't hooked up now
             self.layoutAll(warp)
 
     def info(self):
         return dict(
             name=self.name,
+            label=self.label,
             focus=self.currentWindow.name if self.currentWindow else None,
             windows=[i.name for i in self.windows],
             focusHistory=[i.name for i in self.focusHistory],
@@ -491,6 +494,15 @@ class _Group(command.CommandObject):
     def cmd_switch_groups(self, name):
         """Switch position of current group with name"""
         self.qtile.cmd_switch_groups(self.name, name)
+
+    def cmd_set_label(self, label):
+        """
+        Set the display name of current group to be used in GroupBox widget.
+        If label is None, the name of the group is used as display name.
+        If label is the empty string, the group is invisible in GroupBox.
+        """
+        self.label = label if label is not None else self.name
+        hook.fire("changegroup")
 
     def __repr__(self):
         return "<group.Group (%r)>" % self.name
