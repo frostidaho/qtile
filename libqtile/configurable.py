@@ -18,9 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import Dict
 
-class Configurable(object):
-    global_defaults = {}
+
+class Configurable:
+    global_defaults: Dict = {}
 
     def __init__(self, **config):
         self._variable_defaults = {}
@@ -56,7 +58,7 @@ class Configurable(object):
             return (False, None)
 
 
-class ExtraFallback(object):
+class ExtraFallback:
     """Adds another layer of fallback to attributes
 
     Used to look up a different attribute name

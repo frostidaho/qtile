@@ -22,7 +22,8 @@
 # SOFTWARE.
 
 from . import base
-from .. import bar, hook, xcbq
+from .. import bar, hook
+from ..core import xcbq
 
 
 class Clipboard(base._TextBox):
@@ -62,8 +63,8 @@ class Clipboard(base._TextBox):
         if not self.blacklist:
             return False
 
-        if owner_id in self.qtile.windowMap:
-            owner = self.qtile.windowMap[owner_id].window
+        if owner_id in self.qtile.windows_map:
+            owner = self.qtile.windows_map[owner_id].window
         else:
             owner = xcbq.Window(self.qtile.conn, owner_id)
 

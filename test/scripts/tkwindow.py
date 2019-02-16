@@ -22,15 +22,10 @@
 This script allows creating customized windows using the Tk toolkit.
 """
 import sys
-try:
-    # Python 3
-    import tkinter
-except ImportError:
-    # Python 2
-    import Tkinter as tkinter
+import tkinter
 
 
-class Window(object):
+class Window:
     def __init__(self, title, wm_type):
         self.win = tkinter.Tk()
         self.win.title(title)

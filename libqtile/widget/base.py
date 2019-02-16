@@ -31,10 +31,12 @@
 
 from libqtile.log_utils import logger
 from .. import command, bar, configurable, drawer, confreader
-import six
 import subprocess
 import threading
 import warnings
+
+from typing import Any, List, Tuple
+
 
 # Each widget class must define which bar orientation(s) it supports by setting
 # these bits in an 'orientations' class attribute. Simply having the attribute
@@ -58,7 +60,7 @@ import warnings
 # +------------------------+--------------------+--------------------+
 class _Orientations(int):
     def __new__(cls, value, doc):
-        return super(_Orientations, cls).__new__(cls, value)
+        return super().__new__(cls, value)
 
     def __init__(self, value, doc):
         self.doc = doc
@@ -68,6 +70,7 @@ class _Orientations(int):
 
     def __repr__(self):
         return self.doc
+
 
 ORIENTATION_NONE = _Orientations(0, 'none')
 ORIENTATION_HORIZONTAL = _Orientations(1, 'horizontal only')
@@ -92,7 +95,7 @@ class _Widget(command.CommandObject, configurable.Configurable):
     orientations = ORIENTATION_BOTH
     offsetx = None
     offsety = None
-    defaults = [("background", None, "Widget background color")]
+    defaults: List[Tuple[str, Any, str]] = [("background", None, "Widget background color")]
 
     def __init__(self, length, **config):
         """
@@ -110,7 +113,7 @@ class _Widget(command.CommandObject, configurable.Configurable):
             self.length_type = length
             self.length = 0
         else:
-            assert isinstance(length, six.integer_types)
+            assert isinstance(length, int)
             self.length_type = bar.STATIC
             self.length = length
         self.configured = False
@@ -209,7 +212,7 @@ class _Widget(command.CommandObject, configurable.Configurable):
         """
             Utility function for quick retrieval of a widget by name.
         """
-        w = q.widgetMap.get(name)
+        w = q.widgets_map.get(name)
         if not w:
             raise command.CommandError("No such widget: %s" % name)
         return w
@@ -260,14 +263,13 @@ class _Widget(command.CommandObject, configurable.Configurable):
             Python 3.
         """
         output = subprocess.check_output(command, **kwargs)
-        if six.PY3:
-            output = output.decode()
+        output = output.decode()
         return output
 
     def _wrapper(self, method, *method_args):
         try:
             method(*method_args)
-        except:
+        except:  # noqa: E722
             logger.exception('got exception from widget timer')
 
 
@@ -279,7 +281,7 @@ class _TextBox(_Widget):
         Base class for widgets that are just boxes containing text.
     """
     orientations = ORIENTATION_HORIZONTAL
-    defaults = [
+    defaults: List[Tuple[str, Any, str]] = [
         ("font", "sans", "Default font"),
         ("fontsize", None, "Font size. Calculated if None."),
         ("padding", None, "Padding. Calculated if None."),
@@ -304,14 +306,10 @@ class _TextBox(_Widget):
 
     @text.setter
     def text(self, value):
-        assert value is None or isinstance(value, six.string_types)
+        assert value is None or isinstance(value, str)
         self._text = value
         if self.layout:
             self.layout.text = value
-
-    @property
-    def font(self):
-        return self._font
 
     @property
     def foreground(self):
@@ -322,6 +320,10 @@ class _TextBox(_Widget):
         self._foreground = fg
         if self.layout:
             self.layout.colour = fg
+
+    @property
+    def font(self):
+        return self._font
 
     @font.setter
     def font(self, value):
@@ -408,7 +410,7 @@ class InLoopPollText(_TextBox):
     ('fast' here means that this runs /in/ the event loop, so don't block! If
     you want to run something nontrivial, use ThreadedPollWidget.) """
 
-    defaults = [
+    defaults: List[Tuple[str, Any, str]] = [
         ("update_interval", 600, "Update interval in seconds, if none, the "
             "widget updates whenever the event loop is idle."),
     ]
@@ -470,7 +472,7 @@ class ThreadedPollText(InLoopPollText):
                 text = self.poll()
                 if self.qtile is not None:
                     self.qtile.call_soon_threadsafe(self.update, text)
-            except:
+            except:  # noqa: E722
                 logger.exception("problem polling to update widget %s", self.name)
         # TODO: There are nice asyncio constructs for this sort of thing, I
         # think...
@@ -489,14 +491,13 @@ class ThreadPoolText(_TextBox):
 
     param: text - Initial text to display.
     """
-    defaults = [
+    defaults: List[Tuple[str, Any, str]] = [
         ("update_interval", None, "Update interval in seconds, if none, the "
             "widget updates whenever it's done'."),
     ]
 
     def __init__(self, text, **config):
-        super(ThreadPoolText, self).__init__(text, width=bar.CALCULATED,
-                                             **config)
+        super().__init__(text, width=bar.CALCULATED, **config)
         self.add_defaults(ThreadPoolText.defaults)
 
     def timer_setup(self):
@@ -542,7 +543,7 @@ class ThreadPoolText(_TextBox):
 # these two classes below look SUSPICIOUSLY similar
 
 
-class PaddingMixin(object):
+class PaddingMixin:
     """Mixin that provides padding(_x|_y|)
 
     To use it, subclass and add this to __init__:
@@ -550,7 +551,7 @@ class PaddingMixin(object):
         self.add_defaults(base.PaddingMixin.defaults)
     """
 
-    defaults = [
+    defaults: List[Tuple[str, Any, str]] = [
         ("padding", 3, "Padding inside the box"),
         ("padding_x", None, "X Padding. Overrides 'padding' if set"),
         ("padding_y", None, "Y Padding. Overrides 'padding' if set"),
@@ -560,7 +561,7 @@ class PaddingMixin(object):
     padding_y = configurable.ExtraFallback('padding_y', 'padding')
 
 
-class MarginMixin(object):
+class MarginMixin:
     """Mixin that provides margin(_x|_y|)
 
     To use it, subclass and add this to __init__:
@@ -568,7 +569,7 @@ class MarginMixin(object):
         self.add_defaults(base.MarginMixin.defaults)
     """
 
-    defaults = [
+    defaults: List[Tuple[str, Any, str]] = [
         ("margin", 3, "Margin inside the box"),
         ("margin_x", None, "X Margin. Overrides 'margin' if set"),
         ("margin_y", None, "Y Margin. Overrides 'margin' if set"),

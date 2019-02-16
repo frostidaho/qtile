@@ -15,10 +15,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from __future__ import division
-
 from .base import Layout, _ClientList
+
 
 class _Column(_ClientList):
 
@@ -26,24 +24,27 @@ class _Column(_ClientList):
     cw = _ClientList.current_client
     current = _ClientList.current_index
 
-    def __init__(self, autosplit=True, width=100):
+    def __init__(self, split, insert_position, width=100):
         _ClientList.__init__(self)
         self.width = width
-        self.split = autosplit
+        self.split = split
+        self.insert_position = insert_position
         self.heights = {}
 
     def info(self):
         info = _ClientList.info(self)
-        info.update(dict(
-            heights=[self.heights[c] for c in self.clients],
-            split=self.split,))
+        info.update(
+            dict(
+                heights=[self.heights[c] for c in self.clients],
+                split=self.split,
+            ))
         return info
 
-    def toggleSplit(self):
+    def toggle_split(self):
         self.split = not self.split
 
     def add(self, client, height=100):
-        _ClientList.add(self, client)
+        _ClientList.add(self, client, self.insert_position)
         self.heights[client] = height
         delta = 100 - height
         if delta != 0:
@@ -67,8 +68,9 @@ class _Column(_ClientList):
     def __str__(self):
         cur = self.current
         return "_Column: " + ", ".join([
-            "[%s: %d]" % (c.name, self.heights[c]) if c == cur else
-            "%s: %d" % (c.name, self.heights[c]) for c in self.clients
+            "[%s: %d]" % (c.name, self.heights[c])
+            if c == cur else "%s: %d" % (c.name, self.heights[c])
+            for c in self.clients
         ])
 
 
@@ -76,11 +78,14 @@ class Columns(Layout):
     """Extension of the Stack layout.
 
     The screen is split into columns, which can be dynamically added or
-    removed.  Each column displays either a sigle window at a time from a
-    stack of windows or all of them simultaneously, spliting the column
-    space.  Columns and windows can be resized and windows can be shuffled
-    around.  This layout can also emulate "Wmii", "Verical", and "Max",
-    depending on the default parameters.
+    removed.  Each column can present is windows in 2 modes: split or
+    stacked.  In split mode, all windows are presented simultaneously,
+    spliting the column space.  In stacked mode, only a single window is
+    presented from the stack of windows.  Columns and windows can be
+    resized and windows can be shuffled around.
+
+    This layout can also emulate "Wmii", "Vertical", and "Max", depending
+    on the default parameters.
 
     An example key configuration is::
 
@@ -103,23 +108,30 @@ class Columns(Layout):
         ("name", "columns", "Name of this layout."),
         ("border_focus", "#881111", "Border colour for the focused window."),
         ("border_normal", "#220000", "Border colour for un-focused windows."),
+        ("border_focus_stack", "#881111",
+         "Border colour for the focused window in stacked columns."),
+        ("border_normal_stack", "#220000",
+         "Border colour for un-focused windows in stacked columns."),
         ("border_width", 2, "Border width."),
         ("margin", 0, "Margin of the layout."),
-        ("autosplit", True, "Autosplit newly created columns."),
+        ("split", True, "New columns presentation mode."),
         ("num_columns", 2, "Preferred number of columns."),
         ("grow_amount", 10, "Amount by which to grow a window/column."),
         ("fair", False, "Add new windows to the column with least windows."),
+        ("insert_position", 0,
+         "Position relative to the current window where new ones are inserted "
+         "(0 means right above the current window, 1 means right after)."),
     ]
 
     def __init__(self, **config):
         Layout.__init__(self, **config)
         self.add_defaults(Columns.defaults)
-        self.columns = [_Column(self.autosplit)]
+        self.columns = [_Column(self.split, self.insert_position)]
         self.current = 0
 
     def clone(self, group):
         c = Layout.clone(self, group)
-        c.columns = [_Column(self.autosplit)]
+        c.columns = [_Column(self.split, self.insert_position)]
         return c
 
     def info(self):
@@ -145,7 +157,7 @@ class Columns(Layout):
         return self.columns[self.current]
 
     def add_column(self, prepend=False):
-        c = _Column(self.autosplit)
+        c = _Column(self.split, self.insert_position)
         if prepend:
             self.columns.insert(0, c)
             self.current += 1
@@ -199,9 +211,11 @@ class Columns(Layout):
             client.hide()
             return
         if client.has_focus:
-            color = self.group.qtile.colorPixel(self.border_focus)
+            color = self.group.qtile.color_pixel(self.border_focus if col.split
+                                                 else self.border_focus_stack)
         else:
-            color = self.group.qtile.colorPixel(self.border_normal)
+            color = self.group.qtile.color_pixel(self.border_normal if col.split
+                                                 else self.border_normal_stack)
         if len(self.columns) == 1 and (len(col) == 1 or not col.split):
             border = 0
         else:
@@ -214,17 +228,27 @@ class Columns(Layout):
                 if client == c:
                     break
                 pos += col.heights[c]
-            height = int(0.5 + col.heights[client] * screen.height * 0.01 /
-                    len(col))
+            height = int(
+                0.5 + col.heights[client] * screen.height * 0.01 / len(col))
             y = screen.y + int(0.5 + pos * screen.height * 0.01 / len(col))
-            client.place(x, y, width - 2 * border,
-                    height - 2 * border, border,
-                    color, margin=self.margin)
+            client.place(
+                x,
+                y,
+                width - 2 * border,
+                height - 2 * border,
+                border,
+                color,
+                margin=self.margin)
             client.unhide()
         elif client == col.cw:
-            client.place(x, screen.y, width - 2 * border,
-                    screen.height - 2 * border, border,
-                    color, margin=self.margin)
+            client.place(
+                x,
+                screen.y,
+                width - 2 * border,
+                screen.height - 2 * border,
+                border,
+                color,
+                margin=self.margin)
             client.unhide()
         else:
             client.hide()
@@ -270,8 +294,8 @@ class Columns(Layout):
             return self.columns[idx - 1].focus_last()
 
     def cmd_toggle_split(self):
-        self.cc.toggleSplit()
-        self.group.layoutAll()
+        self.cc.toggle_split()
+        self.group.layout_all()
 
     def cmd_left(self):
         if len(self.columns) > 1:
@@ -332,7 +356,7 @@ class Columns(Layout):
             self.current = 0
         else:
             return
-        self.group.layoutAll()
+        self.group.layout_all()
 
     def cmd_shuffle_right(self):
         cur = self.cc
@@ -353,31 +377,31 @@ class Columns(Layout):
             self.current = len(self.columns) - 1
         else:
             return
-        self.group.layoutAll()
+        self.group.layout_all()
 
     def cmd_shuffle_up(self):
         if self.cc.current_index > 0:
             self.cc.shuffle_up()
-            self.group.layoutAll()
+            self.group.layout_all()
 
     def cmd_shuffle_down(self):
         if self.cc.current_index + 1 < len(self.cc):
             self.cc.shuffle_down()
-            self.group.layoutAll()
+            self.group.layout_all()
 
     def cmd_grow_left(self):
         if self.current > 0:
             if self.columns[self.current - 1].width > self.grow_amount:
                 self.columns[self.current - 1].width -= self.grow_amount
                 self.cc.width += self.grow_amount
-                self.group.layoutAll()
+                self.group.layout_all()
 
     def cmd_grow_right(self):
         if self.current + 1 < len(self.columns):
             if self.columns[self.current + 1].width > self.grow_amount:
                 self.columns[self.current + 1].width -= self.grow_amount
                 self.cc.width += self.grow_amount
-                self.group.layoutAll()
+                self.group.layout_all()
 
     def cmd_grow_up(self):
         col = self.cc
@@ -385,7 +409,7 @@ class Columns(Layout):
             if col.heights[col[col.current - 1]] > self.grow_amount:
                 col.heights[col[col.current - 1]] -= self.grow_amount
                 col.heights[col.cw] += self.grow_amount
-                self.group.layoutAll()
+                self.group.layout_all()
 
     def cmd_grow_down(self):
         col = self.cc
@@ -393,11 +417,11 @@ class Columns(Layout):
             if col.heights[col[col.current + 1]] > self.grow_amount:
                 col.heights[col[col.current + 1]] -= self.grow_amount
                 col.heights[col.cw] += self.grow_amount
-                self.group.layoutAll()
+                self.group.layout_all()
 
     def cmd_normalize(self):
         for col in self.columns:
             for client in col:
                 col.heights[client] = 100
             col.width = 100
-        self.group.layoutAll()
+        self.group.layout_all()

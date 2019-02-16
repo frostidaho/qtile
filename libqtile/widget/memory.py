@@ -18,7 +18,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from __future__ import division
 from libqtile.widget import base
 
 
@@ -41,7 +40,7 @@ class Memory(base.InLoopPollText):
     ]
 
     def __init__(self, **config):
-        super(Memory, self).__init__(**config)
+        super().__init__(**config)
         self.add_defaults(Memory.defaults)
 
     def poll(self):

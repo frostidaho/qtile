@@ -24,9 +24,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from __future__ import division
-
 import math
 
 from .base import _SimpleLayoutBase
@@ -110,9 +107,9 @@ class Matrix(_SimpleLayoutBase):
         col = idx % self.columns
         column_size = int(math.ceil(len(self.clients) / self.columns))
         if client.has_focus:
-            px = self.group.qtile.colorPixel(self.border_focus)
+            px = self.group.qtile.color_pixel(self.border_focus)
         else:
-            px = self.group.qtile.colorPixel(self.border_normal)
+            px = self.group.qtile.color_pixel(self.border_normal)
         # calculate position and size
         column_width = int(screen.width / float(self.columns))
         row_height = int(screen.height / float(column_size))
@@ -174,9 +171,9 @@ class Matrix(_SimpleLayoutBase):
     def cmd_delete(self):
         """Decrease number of columns"""
         self.columns -= 1
-        self.group.layoutAll()
+        self.group.layout_all()
 
     def cmd_add(self):
         """Increase number of columns"""
         self.columns += 1
-        self.group.layoutAll()
+        self.group.layout_all()

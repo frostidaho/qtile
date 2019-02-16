@@ -17,17 +17,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from __future__ import division
-
 from . import command
 from . import confreader
 from . import drawer
 from . import configurable
 from . import window
-from . import log_utils
-
-
-logger = log_utils.logger
 
 
 class Gap(command.CommandObject):
@@ -128,7 +122,7 @@ class Gap(command.CommandObject):
         return self.info()
 
 
-class Obj(object):
+class Obj:
     def __init__(self, name):
         self.name = name
 
@@ -164,7 +158,7 @@ class Bar(Gap, configurable.Configurable):
         Gap.__init__(self, size)
         configurable.Configurable.__init__(self, **config)
         self.add_defaults(Bar.defaults)
-        self.widgets = list(widgets)
+        self.widgets = widgets
         self.saved_focus = None
 
         self.queued_draws = 0
@@ -201,17 +195,12 @@ class Bar(Gap, configurable.Configurable):
         self.window.handle_Expose = self.handle_Expose
         self.window.handle_ButtonPress = self.handle_ButtonPress
         self.window.handle_ButtonRelease = self.handle_ButtonRelease
-        qtile.windowMap[self.window.window.wid] = self.window
+        qtile.windows_map[self.window.window.wid] = self.window
         self.window.unhide()
 
-        for widget in tuple(self.widgets):
-            try:
-                widget._configure(qtile, self)
-                qtile.registerWidget(widget)
-            except Exception:
-                logger.exception("Can't configure widget %r", widget)
-                self.widgets.remove(widget)
-
+        for i in self.widgets:
+            qtile.register_widget(i)
+            i._configure(qtile, self)
         self._resize(self.length, self.widgets)
 
     def finalize(self):
@@ -242,7 +231,7 @@ class Bar(Gap, configurable.Configurable):
                 i.offsety = offset
                 offset += i.length
 
-    def handle_Expose(self, e):
+    def handle_Expose(self, e):  # noqa: N802
         self.draw()
 
     def get_widget_in_position(self, e):
@@ -255,7 +244,7 @@ class Bar(Gap, configurable.Configurable):
                 if e.event_y < i.offsety + i.length:
                     return i
 
-    def handle_ButtonPress(self, e):
+    def handle_ButtonPress(self, e):  # noqa: N802
         widget = self.get_widget_in_position(e)
         if widget:
             widget.button_press(
@@ -264,7 +253,7 @@ class Bar(Gap, configurable.Configurable):
                 e.detail
             )
 
-    def handle_ButtonRelease(self, e):
+    def handle_ButtonRelease(self, e):  # noqa: N802
         widget = self.get_widget_in_position(e)
         if widget:
             widget.button_release(
@@ -280,7 +269,7 @@ class Bar(Gap, configurable.Configurable):
             widget_ungrab_keyboard() must be called.
         """
         self.window.handle_KeyPress = widget.handle_KeyPress
-        self.saved_focus = self.qtile.currentWindow
+        self.saved_focus = self.qtile.current_window
         self.window.window.set_input_focus()
 
     def widget_ungrab_keyboard(self):
@@ -340,7 +329,7 @@ class Bar(Gap, configurable.Configurable):
             :screen The integer screen offset
             :position One of "top", "bottom", "left", or "right"
         """
-        class _Fake(object):
+        class _Fake:
             pass
         fake = _Fake()
         fake.event_x = x

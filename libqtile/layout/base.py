@@ -20,20 +20,20 @@
 # SOFTWARE.
 
 import copy
-import six
 from abc import ABCMeta, abstractmethod
 
 from .. import command, configurable
 
+from typing import Any, List, Tuple
 
-@six.add_metaclass(ABCMeta)
-class Layout(command.CommandObject, configurable.Configurable):
+
+class Layout(command.CommandObject, configurable.Configurable, metaclass=ABCMeta):
     """This class defines the API that should be exposed by all layouts"""
     @classmethod
     def _name(cls):
         return cls.__class__.__name__.lower()
 
-    defaults = [(
+    defaults: List[Tuple[str, Any, str]] = [(
         "name",
         None,
         "The name of this layout"
@@ -342,7 +342,7 @@ class Delegate(Layout):
         """
         if name.startswith('cmd_'):
             return getattr(self._get_active_layout(), name)
-        return super(Delegate, self).__getattr__(name)
+        return super().__getattr__(name)
 
     def info(self):
         d = Layout.info(self)
@@ -351,7 +351,7 @@ class Delegate(Layout):
         return d
 
 
-class _ClientList(object):
+class _ClientList:
     """
     ClientList maintains a list of clients and a current client.
 
@@ -444,8 +444,9 @@ class _ClientList(object):
             self.clients.insert(pos, client)
         else:
             self.clients.append(client)
+        self.current_client = client
 
-    def appendHead(self, client):
+    def append_head(self, client):
         """
         Append the given client in front of list.
         """
@@ -572,6 +573,7 @@ class _ClientList(object):
             current=self._current_idx,
         )
 
+
 class _SimpleLayoutBase(Layout):
     """
     Basic layout class for simple layouts,
@@ -592,7 +594,7 @@ class _SimpleLayoutBase(Layout):
 
     def focus(self, client):
         self.clients.current_client = client
-        self.group.layoutAll()
+        self.group.layout_all()
 
     def focus_first(self):
         return self.clients.focus_first()
@@ -607,12 +609,16 @@ class _SimpleLayoutBase(Layout):
         return self.clients.focus_previous(window)
 
     def previous(self):
+        if self.clients.current_client is None:
+            return
         client = self.focus_previous(self.clients.current_client) or self.focus_last()
-        self.group.focus(client, False)
+        self.group.focus(client, True)
 
     def next(self):
+        if self.clients.current_client is None:
+            return
         client = self.focus_next(self.clients.current_client) or self.focus_first()
-        self.group.focus(client, False)
+        self.group.focus(client, True)
 
     def add(self, client, offset_to_current=0):
         return self.clients.add(client, offset_to_current)

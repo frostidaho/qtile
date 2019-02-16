@@ -28,12 +28,12 @@
 import pytest
 
 from libqtile import layout
-import libqtile.manager
 import libqtile.config
 from ..conftest import no_xinerama
-from .layout_utils import assertFocused, assertFocusPath
+from .layout_utils import assert_focused, assert_focus_path
 
-class MatrixConfig(object):
+
+class MatrixConfig:
     auto_fullscreen = True
     main = None
     groups = [
@@ -51,27 +51,27 @@ class MatrixConfig(object):
     screens = []
 
 
-matrix_config = lambda x: \
-    no_xinerama(pytest.mark.parametrize("qtile", [MatrixConfig], indirect=True)(x))
+def matrix_config(x):
+    return no_xinerama(pytest.mark.parametrize("qtile", [MatrixConfig], indirect=True)(x))
 
 
 @matrix_config
 def test_matrix_simple(qtile):
-    qtile.testWindow("one")
+    qtile.test_window("one")
     assert qtile.c.layout.info()["rows"] == [["one"]]
-    qtile.testWindow("two")
+    qtile.test_window("two")
     assert qtile.c.layout.info()["rows"] == [["one", "two"]]
-    qtile.testWindow("three")
+    qtile.test_window("three")
     assert qtile.c.layout.info()["rows"] == [["one", "two"], ["three"]]
 
 
 @matrix_config
 def test_matrix_navigation(qtile):
-    qtile.testWindow("one")
-    qtile.testWindow("two")
-    qtile.testWindow("three")
-    qtile.testWindow("four")
-    qtile.testWindow("five")
+    qtile.test_window("one")
+    qtile.test_window("two")
+    qtile.test_window("three")
+    qtile.test_window("four")
+    qtile.test_window("five")
     qtile.c.layout.right()
     assert qtile.c.layout.info()["current_window"] == (0, 2)
     qtile.c.layout.up()
@@ -92,11 +92,11 @@ def test_matrix_navigation(qtile):
 
 @matrix_config
 def test_matrix_add_remove_columns(qtile):
-    qtile.testWindow("one")
-    qtile.testWindow("two")
-    qtile.testWindow("three")
-    qtile.testWindow("four")
-    qtile.testWindow("five")
+    qtile.test_window("one")
+    qtile.test_window("two")
+    qtile.test_window("three")
+    qtile.test_window("four")
+    qtile.test_window("five")
     qtile.c.layout.add()
     assert qtile.c.layout.info()["rows"] == [["one", "two", "three"], ["four", "five"]]
     qtile.c.layout.delete()
@@ -106,18 +106,28 @@ def test_matrix_add_remove_columns(qtile):
 @matrix_config
 def test_matrix_window_focus_cycle(qtile):
     # setup 3 tiled and two floating clients
-    qtile.testWindow("one")
-    qtile.testWindow("two")
-    qtile.testWindow("float1")
+    qtile.test_window("one")
+    qtile.test_window("two")
+    qtile.test_window("float1")
     qtile.c.window.toggle_floating()
-    qtile.testWindow("float2")
+    qtile.test_window("float2")
     qtile.c.window.toggle_floating()
-    qtile.testWindow("three")
+    qtile.test_window("three")
 
     # test preconditions
     assert qtile.c.layout.info()['clients'] == ['one', 'two', 'three']
     # last added window has focus
-    assertFocused(qtile, "three")
+    assert_focused(qtile, "three")
 
     # assert window focus cycle, according to order in layout
-    assertFocusPath(qtile, 'float1', 'float2', 'one', 'two', 'three')
+    assert_focus_path(qtile, 'float1', 'float2', 'one', 'two', 'three')
+
+
+@matrix_config
+def test_matrix_next_no_clients(qtile):
+    qtile.c.layout.next()
+
+
+@matrix_config
+def test_matrix_previous_no_clients(qtile):
+    qtile.c.layout.previous()

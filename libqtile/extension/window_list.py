@@ -17,7 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
 from .dmenu import Dmenu
+
 
 class WindowList(Dmenu):
     """
@@ -41,20 +43,20 @@ class WindowList(Dmenu):
         self.item_to_win = {}
 
         if self.all_groups:
-            windows = self.qtile.windowMap.values()
+            windows = self.qtile.windows_map.values()
         else:
-            windows = self.qtile.currentGroup.windows
+            windows = self.qtile.current_group.windows
 
         for win in windows:
             if win.group:
                 item = self.item_format.format(
-                    group=win.group.name, id=id, window=win.name)
+                    group=win.group.label or win.group.name, id=id, window=win.name)
                 self.item_to_win[item] = win
                 id += 1
 
     def run(self):
         self.list_windows()
-        out = super(WindowList, self).run(items=self.item_to_win.keys())
+        out = super().run(items=self.item_to_win.keys())
 
         try:
             sout = out.rstrip('\n')
@@ -70,6 +72,6 @@ class WindowList(Dmenu):
             # The selected window got closed while the menu was open?
             return
 
-        screen = self.qtile.currentScreen
-        screen.setGroup(win.group)
+        screen = self.qtile.current_screen
+        screen.set_group(win.group)
         win.group.focus(win)

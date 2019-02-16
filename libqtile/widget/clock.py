@@ -28,17 +28,20 @@ from . import base
 
 import os
 
+from datetime import timezone
+
+
 @contextmanager
 def tz(the_tz):
     orig = os.environ.get('TZ')
     os.environ['TZ'] = the_tz
-    time.tzset()
     yield
     if orig is not None:
         os.environ['TZ'] = orig
     else:
         del os.environ['TZ']
     time.tzset()
+
 
 class Clock(base.InLoopPollText):
     """A simple but flexible text-based clock"""
@@ -64,7 +67,9 @@ class Clock(base.InLoopPollText):
     # theoreticaly call our method too early and we could get something
     # like (x-1).999 instead of x.000
     def _get_time(self):
-        return (datetime.now() + self.DELTA).strftime(self.format)
+        time.tzset()
+        now = datetime.now(timezone.utc).astimezone()
+        return (now + self.DELTA).strftime(self.format)
 
     def poll(self):
         # We use None as a sentinel here because C's strftime defaults to UTC

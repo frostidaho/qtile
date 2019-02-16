@@ -33,6 +33,7 @@ import textwrap
 from setuptools import setup
 from setuptools.command.install import install
 
+
 class CheckCairoXcb(install):
     def cairo_xcb_check(self):
         try:
@@ -63,6 +64,7 @@ class CheckCairoXcb(install):
             sys.exit(1)
         install.finalize_options(self)
 
+
 long_description = """
 A pure-Python tiling window manager.
 
@@ -80,23 +82,17 @@ Features
       unit-tested window mangers around.
 """
 
-if '_cffi_backend' in sys.builtin_module_names: # pypy has cffi builtin
+if '_cffi_backend' in sys.builtin_module_names:  # pypy has cffi builtin
     import _cffi_backend
     requires_cffi = "cffi==" + _cffi_backend.__version__
 else:
     requires_cffi = "cffi>=1.1.0"
 
-dependencies = ['xcffib>=0.5.0', 'cairocffi>=0.7', 'six>=1.4.1', requires_cffi]
-if sys.version_info >= (3, 4):
-    pass
-elif sys.version_info >= (3, 3):
-    dependencies.append('asyncio')
-else:
-    dependencies.append('trollius')
+dependencies = ['xcffib>=0.5.0', 'cairocffi>=0.9[xcb]', requires_cffi]
 
 setup(
     name="qtile",
-    version="0.10.7",
+    version="0.13.0",
     description="A pure-Python tiling window manager.",
     long_description=long_description,
     classifiers=[
@@ -104,13 +100,9 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
         "Operating System :: Unix",
         "Topic :: Desktop Environment :: Window Managers",
     ],
@@ -127,6 +119,7 @@ setup(
         'ipython': ["ipykernel", "jupyter_console"],
     },
     packages=['libqtile',
+              'libqtile.core',
               'libqtile.interactive',
               'libqtile.layout',
               'libqtile.scripts',
@@ -142,13 +135,15 @@ setup(
     ]},
     entry_points={
         'console_scripts': [
+            'qshell = libqtile.scripts.qshell:main',
             'qtile = libqtile.scripts.qtile:main',
+            'qtile-cmd = libqtile.scripts.qtile_cmd:main',
             'qtile-run = libqtile.scripts.qtile_run:main',
             'qtile-top = libqtile.scripts.qtile_top:main',
-            'qshell = libqtile.scripts.qshell:main',
         ]
     },
     scripts=[
+        'bin/dqtile-cmd',
         'bin/iqshell',
     ],
     data_files=[
@@ -156,7 +151,7 @@ setup(
                             'resources/qshell.1'])],
     cmdclass={'install': CheckCairoXcb},
     cffi_modules=[
-        'libqtile/ffi_build.py:pango_ffi',
-        'libqtile/ffi_build.py:xcursors_ffi',
+        'libqtile/pango_ffi_build.py:pango_ffi',
+        'libqtile/core/xcursors_ffi_build.py:xcursors_ffi',
     ],
 )

@@ -9,7 +9,7 @@ A full-featured, pure-Python tiling window manager
 
 :Website: http://www.qtile.org
 :Source: https://github.com/qtile/qtile
-:Documentation: http://qtile.readthedocs.io/en/latest/
+:Documentation: https://qtile.readthedocs.io/en/latest/
 :License: MIT License
 
 Features
@@ -28,7 +28,7 @@ Features
 Current Release
 ===============
 
-The current stable version of qtile is 0.10.7, released 2017-02-14. See the
+The current stable version of qtile is 0.13.0, released 2018-12-23. See the
 `documentation <http://docs.qtile.org/en/latest/manual/install/index.html>`_
 for installation instructions.
 

@@ -27,14 +27,16 @@ from os import path, getenv
 
 from libqtile.log_utils import init_log, logger
 from libqtile import confreader
+from libqtile.core import xcore
 
-locale.setlocale(locale.LC_ALL, locale.getdefaultlocale())
+locale.setlocale(locale.LC_ALL, locale.getdefaultlocale())  # type: ignore
 
 try:
     import pkg_resources
     VERSION = pkg_resources.require("qtile")[0].version
 except (pkg_resources.DistributionNotFound, ImportError):
     VERSION = 'dev'
+
 
 def rename_process():
     """
@@ -48,8 +50,9 @@ def rename_process():
     try:
         import setproctitle
         setproctitle.setproctitle("qtile")
-    except:
+    except ImportError:
         pass
+
 
 def make_qtile():
     from argparse import ArgumentParser
@@ -101,27 +104,25 @@ def make_qtile():
     log_level = getattr(logging, options.log_level)
     init_log(log_level=log_level)
 
+    kore = xcore.XCore()
     try:
-        config = confreader.Config.from_file(options.configfile)
+        config = confreader.Config.from_file(kore, options.configfile)
     except Exception as e:
         logger.exception('Error while reading config file (%s)', e)
         config = confreader.Config()
         from libqtile.widget import TextBox
         widgets = config.screens[0].bottom.widgets
         widgets.insert(0, TextBox('Config Err!'))
-    # XXX: the import is here becouse we need to call init_log
+    # XXX: the import is here because we need to call init_log
     # before start importing stuff
-    from libqtile import manager
-    try:
-        return manager.Qtile(
-            config,
-            fname=options.socket,
-            no_spawn=options.no_spawn,
-            state=options.state,
-        )
-    except:
-        logger.exception('Qtile crashed during startup')
-        raise
+    from libqtile.core import manager
+    return manager.Qtile(
+        kore,
+        config,
+        fname=options.socket,
+        no_spawn=options.no_spawn,
+        state=options.state,
+    )
 
 
 def main():

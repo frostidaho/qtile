@@ -33,8 +33,11 @@
 from .log_utils import logger
 from . import utils
 
-subscriptions = {}
-SKIPLOG = set()
+from typing import Dict, Set
+
+
+subscriptions: Dict = {}
+SKIPLOG: Set = set()
 qtile = None
 
 
@@ -47,7 +50,7 @@ def clear():
     subscriptions.clear()
 
 
-class Subscribe(object):
+class Subscribe:
     def __init__(self):
         hooks = set([])
         for i in dir(self):
@@ -365,6 +368,7 @@ class Subscribe(object):
         """
         return self._subscribe("current_screen_change", func)
 
+
 subscribe = Subscribe()
 
 
@@ -383,6 +387,7 @@ class Unsubscribe(Subscribe):
                 " currently subscribed"
             )
 
+
 unsubscribe = Unsubscribe()
 
 
@@ -390,12 +395,13 @@ def fire(event, *args, **kwargs):
     if (event not in subscribe.hooks) and (not event.startswith('status_update_')):
         raise utils.QtileError("Unknown event: %s" % event)
     if event not in SKIPLOG:
-        logger.info("Internal event: %s(%s, %s)", event, args, kwargs)
+        logger.debug("Internal event: %s(%s, %s)", event, args, kwargs)
     for i in subscriptions.get(event, []):
         try:
             i(*args, **kwargs)
-        except:
+        except:  # noqa: E722
             logger.exception("Error in hook %s", event)
+
 
 @subscribe.client_name_updated
 def _fire_window_name_change(window):

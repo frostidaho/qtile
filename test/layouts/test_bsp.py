@@ -20,12 +20,12 @@
 import pytest
 
 from libqtile import layout
-import libqtile.manager
 import libqtile.config
 from ..conftest import no_xinerama
-from .layout_utils import assertFocused, assertFocusPath
+from .layout_utils import assert_focused, assert_focus_path
 
-class WmiiConfig(object):
+
+class BspConfig:
     auto_fullscreen = True
     main = None
     groups = [
@@ -35,7 +35,7 @@ class WmiiConfig(object):
         libqtile.config.Group("d")
     ]
     layouts = [
-        layout.Wmii(),
+        layout.Bsp(),
     ]
     floating_layout = libqtile.layout.floating.Floating()
     keys = []
@@ -44,26 +44,27 @@ class WmiiConfig(object):
     follow_mouse_focus = False
 
 
-wmii_config = lambda x: \
-    no_xinerama(pytest.mark.parametrize("qtile", [WmiiConfig], indirect=True)(x))
+def bsp_config(x):
+    return no_xinerama(pytest.mark.parametrize("qtile", [BspConfig], indirect=True)(x))
 
 # This currently only tests the window focus cycle
 
-@wmii_config
-def test_wmii_window_focus_cycle(qtile):
-    # setup 3 tiled and two floating clients
-    qtile.testWindow("one")
-    qtile.testWindow("two")
-    qtile.testWindow("float1")
-    qtile.c.window.toggle_floating()
-    qtile.testWindow("float2")
-    qtile.c.window.toggle_floating()
-    qtile.testWindow("three")
 
-    # test preconditions
-    assert qtile.c.layout.info()['clients'] == ['one', 'two', 'three']
+@bsp_config
+def test_bsp_window_focus_cycle(qtile):
+    # setup 3 tiled and two floating clients
+    qtile.test_window("one")
+    qtile.test_window("two")
+    qtile.test_window("float1")
+    qtile.c.window.toggle_floating()
+    qtile.test_window("float2")
+    qtile.c.window.toggle_floating()
+    qtile.test_window("three")
+
+    # test preconditions, columns adds clients at pos of current, in two stacks
+    assert qtile.c.layout.info()['clients'] == ['one', 'three', 'two']
     # last added window has focus
-    assertFocused(qtile, "three")
+    assert_focused(qtile, "three")
 
     # assert window focus cycle, according to order in layout
-    assertFocusPath(qtile, 'float1', 'float2', 'one', 'two', 'three')
+    assert_focus_path(qtile, 'two', 'float1', 'float2', 'one', 'three')
