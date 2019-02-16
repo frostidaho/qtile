@@ -206,8 +206,7 @@ class Qtile(command.CommandObject):
         self._xpoll()
 
         # Map and Grab keys
-        for key in self.config.keys:
-            self.map_key(key)
+        self.set_key_map(self.config.keys)
 
         # It fixes problems with focus when clicking windows of some specific clients like xterm
         def noop(qtile):
@@ -452,6 +451,25 @@ class Qtile(command.CommandObject):
         for amask in self._auto_modmasks():
             self.root.ungrab_key(code, modmask | amask)
         del(self.keys_map[key_index])
+
+    def set_key_map(self, keymap):
+        valid_mask = self.valid_mask
+        try:
+            remove_others = keymap.remove_others
+            new_key_map = keymap.as_dict(valid_mask)
+        except AttributeError:
+            # In case keymap is just a list and doesn't have
+            # the param remove_others, or the method as_dict()
+            remove_others = True
+            new_key_map = {
+                (key.keysym, key.modmask & valid_mask): key for key in keymap
+            }
+        if remove_others:
+            self.keys_map = new_key_map
+        else:
+            self.keys_map.update(new_key_map)
+        hook.fire("keymap_change", keymap)
+        self.grab_keys()
 
     def update_net_desktops(self):
         try:
@@ -947,12 +965,15 @@ class Qtile(command.CommandObject):
             logger.info("Ignoring unknown keysym: %s" % keysym)
             return
         for i in k.commands:
-            if i.check(self):
-                status, val = self.server.call(
-                    (i.selectors, i.name, i.args, i.kwargs)
-                )
-                if status in (command.ERROR, command.EXCEPTION):
-                    logger.error("KB command error %s: %s" % (i.name, val))
+            try:
+                if i.check(self):
+                    status, val = self.server.call(
+                        (i.selectors, i.name, i.args, i.kwargs)
+                    )
+                    if status in (command.ERROR, command.EXCEPTION):
+                        logger.error("KB command error %s: %s" % (i.name, val))
+            except AttributeError:
+                self.set_key_map(i)
         else:
             return
 
