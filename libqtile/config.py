@@ -126,11 +126,13 @@ class KeyMap(_UserList):
 
 class Mouse:
     def __init__(self, modifiers, button, *commands, **kwargs):
-        self.focus = kwargs.get("focus", "before")
+        self.focus = kwargs.pop("focus", "before")
         self.modifiers = modifiers
         self.button = button
         self.commands = commands
         self.button_code = int(self.button.replace('Button', ''))
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
 
 class Drag(Mouse):
